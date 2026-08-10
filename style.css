@@ -1,0 +1,136 @@
+body{
+    font-family: 'Space Grotesk', VT323, Silkscreen, 'Press Start', MedievalSharp, 'Exo 2', sans-serif;
+    text-align: center; color: #FFFFFF;
+    background-image: linear-gradient(to top right,#a700fb,#510388,#000000 );
+}
+/* item selector */
+
+p{
+    color: #00fbff;
+    font-weight: bold;
+}
+a{
+    color: #000000;
+    font-weight: bold;
+}
+
+
+
+
+/* class selectors */
+.Bold{
+    font-weight: bolder;
+    font-size: large;
+}
+
+.logo {
+    /* outline: red solid 2px; */
+    color: #FFFFFF;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.03em; text-align: left; margin: 10px;
+}
+
+.logo >span { 
+    color: #4f8aff;
+ }
+ .TopContainer{
+    width: 100%; height: 160px;  
+    outline: rgb(0, 0, 0) solid 2px;
+    background-image: linear-gradient(to top left,#001eff,#00fffb);
+    display: flex; justify-content: center;
+    align-items: center; font-size: 16px;
+    /* border-radius: 4px; */
+ }
+ .SpeechContainer{
+    width: 659px;
+    height: 120px;
+    /* outline: red solid 2px; */
+    display: flex; justify-content: center;align-items: center; flex-wrap: wrap;
+    background-color:#4a0478a4 ;
+    border-radius: 16px;
+ }
+ .Speech{
+    margin-top: auto;
+    margin-bottom: -100;
+    width: 80%;
+    
+ } 
+ .Intro{ 
+    margin-top: 7px;
+    width: auto;
+    display: flex; justify-content: center; align-items: center;
+
+ }
+.SubSpeech{
+    width: 500px;
+    height: 50px;
+    background-color: black;
+    outline: rgb(0, 255, 213) solid 2px;
+    display: flex; justify-content: center; align-items: center;
+    border-radius: 20px;
+}
+/* Universal Img Rule */
+img{
+    width: 450px;
+    height: 220px;
+    border-radius: 10px;
+}
+/* head guide */
+.TopTitle {
+    width: 100%; height: 50px;
+    color: #00fbff; background-image: linear-gradient(to left,black,#8c00ff);
+    display: flex; justify-content: space-between;
+    margin-bottom: 10px;
+}
+.Name{
+    /* outline: red solid 2px; */
+    display: flex; justify-content: space-around;
+    width: 200px; height: 50px;
+}
+.Description{
+    /* outline: red solid 2px; */
+    display: flex;justify-content: center;
+    width: 300px; height: 50px;
+}
+.Button{
+    /* outline: red solid 2px; */
+    display: flex;justify-content: center;
+    width: 400px; height: 50px;
+}
+/* Graph Css Containers */
+
+.Container{
+outline: rgb(0, 0, 0) solid 2px;
+width: 100%;
+height: 220px;
+display: flex;justify-content: baseline;align-items: center;
+margin: 5px;
+
+}
+.TitleContainer{
+    display: flex;justify-content: center; align-items: center;
+    width: 200px; height: 200px; 
+    padding: 10px;
+    background-color: rgb(0, 0, 0);
+/* outline: red solid 2px; */
+}
+.DescriptionContainer{
+    display: flex;justify-content: center; align-items: center;
+    /* outline: red solid 2px; */
+    width: 500px; height: 220px; 
+}
+.LogoContainer{
+    /* outline: red solid 2px; */
+    display: flex;justify-content: center; align-items: center;
+}
+#BottomInfo{
+    width: 100%; height: 200px;
+    background-image: linear-gradient(to top,#000000,#7020FF );
+    display: flex; justify-content: space-around; align-items: center;
+    
+
+}
+#BottomInfo > a{
+color: #888484;
+}

@@ -27,11 +27,7 @@ app.use(cors());
 app.use(express.json());
 
 // ── URL safety check ─────────────────────────────────────────
-// This is NOT about restricting what users can export.
-// This protects YOUR SERVER from being used as a hacking tool.
-// Example: without this, a bad actor could trick your server
-// into scanning your own internal network — that would be YOUR
-// legal problem, not theirs. So we block internal addresses only.
+// We block internal addresses only.
 // Any real public website on the internet is allowed.
 function isSafeURL(rawURL) {
   let parsed;
