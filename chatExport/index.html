@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChatExport — Save Your AI Chats</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">Coolkid<span>Labs</span></div>
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">How It Works</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="#">Terms of Service</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Free · No account needed · Instant download</div>
+    <h1>Save your AI chats as<br/><em>beautiful files</em></h1>
+    <p>Paste any AI conversation — or import from a public share link — and download it as a PDF, plain text, or Markdown file.</p>
+  </div>
+
+  <div class="layout">
+
+    <div class="ad-panel">
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">🎓</span><p class="ad-text">Learn to Code Online — Free Courses</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">🛡️</span><p class="ad-text">VPN — Stay Safe Online</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">☁️</span><p class="ad-text">Cloud Storage — 1TB Free</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">🤖</span><p class="ad-text">AI Writing Tools — Try Free</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">📱</span><p class="ad-text">Top Apps of 2026</p></div>
+    </div>
+
+    <div class="tool-panel">
+
+      <!-- ═══════════════════════════════════════════════════
+           STEP 0 — Import from a public share link (NEW)
+           This card was added to support auto-fetching chats.
+           It talks to server.js running on localhost:3001.
+      ═══════════════════════════════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">✦</div>
+          <div>
+            <div class="step-title">Import from a share link</div>
+            <div class="step-desc">Paste a public AI chat link and we'll fetch it automatically</div>
+          </div>
+        </div>
+
+        <span class="field-label">Public share link</span>
+        <div class="url-row">
+          <input
+            type="text"
+            id="shareURL"
+            placeholder="https://claude.ai/share/...  |  https://chat.openai.com/share/...  |  any public AI chat link"
+          />
+          <button class="fetch-btn" id="fetchBtn" onclick="fetchFromURL()">
+            ↓ Import Chat
+          </button>
+        </div>
+
+        <!-- Status message: shows loading / success / error -->
+        <div id="fetchStatus" class="fetch-status" style="display:none;"></div>
+
+        <p class="url-note">
+          Works with any public AI chat link —
+          <strong>Claude, ChatGPT, Gemini, Grok, DeepSeek, Kimi, Perplexity,
+          Mistral, Copilot, NotebookLM, HuggingChat, Poe, Phind</strong> and more.
+          Link must be <em>publicly shared</em> — not a private session.
+          By importing, you confirm you have the right to export this content.
+          Or skip this and paste your chat manually in Step 1 below.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════
+           STEP 1 — Paste your chat (original, unchanged)
+      ═══════════════════════════════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <div>
+            <div class="step-title">Paste your chat</div>
+            <div class="step-desc">Copy your AI conversation and paste it below</div>
+          </div>
+        </div>
+        <textarea id="chatInput" placeholder="Paste your AI chat here... (or use the Import link above)" oninput="updateStats()"></textarea>
+        <div class="stats-bar">
+          <div class="stat">Characters: <span class="stat-value" id="charCount">0</span></div>
+          <div class="stat">Words: <span class="stat-value" id="wordCount">0</span></div>
+          <div class="stat">Lines: <span class="stat-value" id="lineCount">0</span></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════
+           STEP 2 — Name your file (original, unchanged)
+      ═══════════════════════════════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <div>
+            <div class="step-title">Name your file</div>
+            <div class="step-desc">Choose a meaningful name for your download</div>
+          </div>
+        </div>
+        <span class="field-label">File name (no extension needed)</span>
+        <input type="text" id="fileName" value="my-ai-chat" placeholder="e.g. python-lesson-notes" />
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════
+           STEP 3 — Choose a format (original, unchanged)
+      ═══════════════════════════════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">3</div>
+          <div>
+            <div class="step-title">Choose a format</div>
+            <div class="step-desc">Select how you want your file saved</div>
+          </div>
+        </div>
+        <div class="format-grid">
+          <button class="format-btn active" id="btn-txt" onclick="selectFormat('txt')">
+            <span class="format-icon">📄</span>
+            <span class="format-name">Plain Text</span>
+            <span class="format-desc">.txt — simple &amp; universal</span>
+          </button>
+          <button class="format-btn" id="btn-pdf" onclick="selectFormat('pdf')">
+            <span class="format-icon">📕</span>
+            <span class="format-name">PDF</span>
+            <span class="format-desc">.pdf — great for sharing</span>
+          </button>
+          <button class="format-btn" id="btn-md" onclick="selectFormat('md')">
+            <span class="format-icon">🗒️</span>
+            <span class="format-name">Markdown</span>
+            <span class="format-desc">.md — for notes &amp; GitHub</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════
+           STEP 4 — Preview & Download (original, unchanged)
+      ═══════════════════════════════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">4</div>
+          <div>
+            <div class="step-title">Preview &amp; Download</div>
+            <div class="step-desc">Check your content then save your file</div>
+          </div>
+        </div>
+        <div id="previewBox" class="preview-box"></div>
+        <div style="height:12px;"></div>
+        <button class="download-btn" id="downloadBtn" onclick="downloadFile()" disabled>
+          ⬇ Download File
+        </button>
+      </div>
+
+    </div>
+
+    <div class="ad-panel">
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">💻</span><p class="ad-text">Best Laptops for Developers 2026</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">🎮</span><p class="ad-text">Roblox Studio Courses</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">📚</span><p class="ad-text">Python Bootcamp — Beginner to Pro</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">🔐</span><p class="ad-text">Password Manager — Free Plan</p></div>
+      <div class="ad-slot"><span class="ad-label">Ad</span><span class="ad-icon">🌐</span><p class="ad-text">Web Hosting from $1/mo</p></div>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">✓ File downloaded successfully!</div>
+
+  <footer>
+    <div>© 2026 ChatExport — Free forever</div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
