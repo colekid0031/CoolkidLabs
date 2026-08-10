@@ -123,6 +123,8 @@ margin: 5px;
 .LogoContainer{
     /* outline: red solid 2px; */
     display: flex;justify-content: center; align-items: center;
+    flex-shrink: 1;width: 450px;
+    height: 220px;
 }
 #BottomInfo{
     width: 100%; height: 200px;
