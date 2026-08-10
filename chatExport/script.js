@@ -12,8 +12,7 @@
 // Change this to your server's URL when you deploy online.
 // During local testing: http://localhost:3001
 // After deploying to Railway/Render: https://your-app.railway.app
-const SERVER_URL = 'http://localhost:3001';
-
+const SERVER_URL = 'https://chatexport-server.onrender.com';
 // ── State ─────────────────────────────────────────────────────
 let selectedFormat = 'txt';
 
