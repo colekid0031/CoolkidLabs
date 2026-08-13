@@ -1,5 +1,5 @@
 // ============================================================
-//  ChatExport — server.js (Full Edition)
+//  ChatExport — server.js 
 //
 //  The TWO strategies to extract chat content:
 //
@@ -19,7 +19,7 @@
 
 const express   = require('express');
 const cors      = require('cors');
-const fetch     = require('node-fetch');
+// fetch is built into Node 18+ — no import needed
 const cheerio   = require('cheerio');
 const puppeteer = require('puppeteer-core');
 const chromium  = require('@sparticuz/chromium');
@@ -411,7 +411,7 @@ app.post('/fetch-chat', async (req, res) => {
           'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
         },
-        timeout: 20000,
+        signal: AbortSignal.timeout(20000), // native fetch timeout (replaces node-fetch's timeout option)
       });
 
       if (!response.ok) {
