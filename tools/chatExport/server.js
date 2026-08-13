@@ -1,4 +1,3 @@
-
 // ============================================================
 //  ChatExport — server.js (Full Edition)
 //
@@ -421,19 +420,20 @@ app.post('/fetch-chat', async (req, res) => {
       });
 
       if (!response.ok) {
-        return res.status(422).json({
-          error: `Page returned error ${response.status}. Make sure it's a valid public share link.`
-        });
-      }
-
-      const html = await response.text();
-      const $    = cheerio.load(html);
-      chatData   = extractWithCheerio($, platform);
-
-      // If cheerio got nothing, fall back to Puppeteer
-      if (!chatData.turns || chatData.turns.length === 0) {
-        console.log(`[ChatExport] Cheerio got nothing, falling back to Puppeteer`);
+        // The target site blocked the plain fetch (Cloudflare, auth wall, etc.)
+        // Log the real status so we can see it in Railway logs, then try Puppeteer.
+        console.warn(`[ChatExport] Cheerio fetch got HTTP ${response.status} for ${trimmedURL} — falling back to Puppeteer`);
         chatData = await extractWithPuppeteer(trimmedURL, platform);
+      } else {
+        const html = await response.text();
+        const $    = cheerio.load(html);
+        chatData   = extractWithCheerio($, platform);
+
+        // If cheerio got nothing useful, fall back to Puppeteer
+        if (!chatData.turns || chatData.turns.length === 0) {
+          console.log(`[ChatExport] Cheerio got nothing, falling back to Puppeteer`);
+          chatData = await extractWithPuppeteer(trimmedURL, platform);
+        }
       }
     }
 
@@ -460,7 +460,7 @@ app.post('/fetch-chat', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('[ChatExport] Error:', err.message);
+    console.error('[ChatExport] Full error:', err); // full stack trace in Railway logs
     let userMessage = 'Failed to fetch the page.';
     if (err.message.includes('timeout')) {
       userMessage = 'The page took too long to load. Try again or paste manually.';
