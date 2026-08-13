@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Character Profile Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="downloadBtn">⬇ Download PNG</button>
+  <button id="resetBtn">↺ Reset Images</button>
+  <span class="hint">Click any photo box to upload · Click any text to edit it directly</span>
+</div>
+
+<div id="card">
+  <div class="inner-frame">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+      <div class="name" contenteditable="true">(Character name.)</div>
+      <div class="epithet" contenteditable="true">The Wandering Blade</div>
+
+      <div class="field-block">
+        <div class="field-label">Form</div>
+        <div class="field-text" contenteditable="true"> Character Form </div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-label">Height</div>
+        <div class="field-text" contenteditable="true">Character Height.</div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-label">Attire</div>
+        <div class="field-text" contenteditable="true">Paste Character Attire Here.</div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-label">Personality</div>
+        <div class="field-text" contenteditable="true">Paste Character Personality Here.</div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-label">Role</div>
+        <div class="field-text" contenteditable="true">A drifting mercenary caught between two warring cities, and the last person who still remembers the old law.</div>
+      </div>
+
+      <div class="emblem">✦</div>
+    </div>
+
+    <!-- PHOTO GRID -->
+    <div class="photo-area">
+      <div class="slot slot-main" data-slot="main">
+        <span class="placeholder">Main Portrait<br>(click to upload)</span>
+        <input type="file" accept="image/*">
+        <button class="remove-btn">✕</button>
+      </div>
+      <div class="slot slot-tall" data-slot="face">
+        <span class="placeholder">Close-up / Face<br>(click to upload)</span>
+        <input type="file" accept="image/*">
+        <button class="remove-btn">✕</button>
+      </div>
+      <div class="slot slot-small" data-slot="alt">
+        <span class="placeholder">Alt Pose<br>(click to upload)</span>
+        <input type="file" accept="image/*">
+        <button class="remove-btn">✕</button>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bottom-row" style="grid-column: 1 / -1;">
+      <div class="slot" data-slot="scene1" style="min-height:180px;">
+        <span class="placeholder">Scene / Pose<br>(click to upload)</span>
+        <input type="file" accept="image/*">
+        <button class="remove-btn">✕</button>
+      </div>
+      <div class="slot" data-slot="scene2" style="min-height:180px;">
+        <span class="placeholder">Scene / Pose<br>(click to upload)</span>
+        <input type="file" accept="image/*">
+        <button class="remove-btn">✕</button>
+      </div>
+      <div class="quote-card">
+        <div class="quote-emblem">✦</div>
+        <div class="quote-name" contenteditable="true">NAME</div>
+        <div class="quote-tags" contenteditable="true">quote-tags</div>
+        <div class="quote-line" contenteditable="true">"Quotes character most important lines."</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Image upload handling
+  document.querySelectorAll('.slot').forEach(slot => {
+    const input = slot.querySelector('input[type=file]');
+    const removeBtn = slot.querySelector('.remove-btn');
+
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        let img = slot.querySelector('img');
+        if (!img) {
+          img = document.createElement('img');
+          slot.insertBefore(img, input);
+        }
+        img.src = ev.target.result;
+        const placeholder = slot.querySelector('.placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+        slot.classList.add('has-img');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const img = slot.querySelector('img');
+      if (img) img.remove();
+      const placeholder = slot.querySelector('.placeholder');
+      if (placeholder) placeholder.style.display = '';
+      slot.classList.remove('has-img');
+      input.value = '';
+    });
+  });
+
+  // Download as PNG
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const card = document.getElementById('card');
+    // temporarily hide remove buttons for clean export
+    document.querySelectorAll('.remove-btn').forEach(b => b.style.display = 'none');
+    html2canvas(card, {backgroundColor: '#26241f', scale: 2}).then(canvas => {
+      document.querySelectorAll('.slot.has-img .remove-btn').forEach(b => b.style.display = 'block');
+      const link = document.createElement('a');
+      const nameEl = document.querySelector('.name');
+      const fileName = (nameEl.textContent.trim() || 'character') + '-profile.png';
+      link.download = fileName;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  });
+
+  // Reset all images
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (!confirm('Remove all uploaded photos?')) return;
+    document.querySelectorAll('.slot').forEach(slot => {
+      const img = slot.querySelector('img');
+      if (img) img.remove();
+      const placeholder = slot.querySelector('.placeholder');
+      if (placeholder) placeholder.style.display = '';
+      slot.classList.remove('has-img');
+      const input = slot.querySelector('input[type=file]');
+      if (input) input.value = '';
+    });
+  });
+</script>
+
+</body>
+</html>
