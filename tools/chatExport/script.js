@@ -1,18 +1,13 @@
 // ============================================================
 //  ChatExport — script.js (Frontend)
 //  This runs in the USER'S BROWSER.
-//  It talks to YOUR SERVER (server.js) to fetch chat links.
+//  It talks to Our SERVER (server.js) to fetch chat links.
 //
-//  The key new feature: fetchFromURL()
+//  Our key new feature: fetchFromURL()
 //  User pastes a share link → we send it to our server →
 //  server fetches + extracts → we get back clean chat text.
-// ============================================================
 
-// ── Configuration ─────────────────────────────────────────────
-// Change this to your server's URL when you deploy online.
-// During local testing: http://localhost:3001
-// After deploying to Railway/Render: https://your-app.railway.app
-const SERVER_URL = 'coolkidlabs-production.up.railway.app';
+const SERVER_URL = 'https://coolkidlabs-production.up.railway.app';
 // ── State ─────────────────────────────────────────────────────
 let selectedFormat = 'txt';
 
@@ -40,8 +35,8 @@ function updateStats() {
 }
 
 // ── URL Fetcher ───────────────────────────────────────────────
-// This is the new feature. Called when the user clicks "Import from Link".
-// It sends the URL to our Node.js server and fills the textarea with the result.
+//This is Called when the user clicks "Import from Link".
+// It sends the URL to The server and fills the text area with the result.
 async function fetchFromURL() {
   const urlInput    = document.getElementById('shareURL');
   const fetchBtn    = document.getElementById('fetchBtn');
@@ -104,7 +99,7 @@ async function fetchFromURL() {
     console.error('Network error:', networkError);
     showFetchStatus(
       'Could not connect to the ChatExport server. ' +
-      'Make sure the server is running (node server.js).',
+      'Make sure Your internet is running (If it is... Our servers may be down).',
       'error'
     );
 

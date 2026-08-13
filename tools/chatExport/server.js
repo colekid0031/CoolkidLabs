@@ -1,7 +1,7 @@
 // ============================================================
 //  ChatExport — server.js (Full Edition)
 //
-//  Uses TWO strategies to extract chat content:
+//  The TWO strategies to extract chat content:
 //
 //  Strategy 1 — node-fetch + cheerio (fast, lightweight)
 //    Works for: ChatGPT, Perplexity, Poe, Phind, HuggingChat
@@ -9,11 +9,9 @@
 //
 //  Strategy 2 — Puppeteer (full headless Chrome browser)
 //    Works for: Claude, Gemini, Grok, DeepSeek, Kimi, Mistral
-//    These platforms load content via JavaScript/React.
-//    Puppeteer actually runs the JavaScript like a real browser.
-//
-//  The server tries Strategy 1 first (fast).
-//  If it gets no content, it automatically falls back to
+
+//  The server Should try Strategy 1 first (fast).
+//  If it gets no content, it   will falls back to
 //  Strategy 2 (slower but more powerful).
 //
 //  Users are responsible for what they export.
@@ -23,7 +21,8 @@ const express   = require('express');
 const cors      = require('cors');
 const fetch     = require('node-fetch');
 const cheerio   = require('cheerio');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromium  = require('@sparticuz/chromium');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -32,7 +31,7 @@ app.use(cors());
 app.use(express.json());
 
 // ── URL safety check ─────────────────────────────────────────
-// Protects YOUR server from being used as a hacking tool.
+// Protects The server from being used as a hacking tool.
 // Blocks internal/private IPs only — all public URLs are allowed.
 function isSafeURL(rawURL) {
   let parsed;
@@ -183,14 +182,10 @@ async function extractWithPuppeteer(url, platform) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--window-size=1280,900',
-      ]
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
