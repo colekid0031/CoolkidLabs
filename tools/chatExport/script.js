@@ -133,7 +133,7 @@ function parseChatTurns(rawText) {
   const turns = [];
   let currentSpeaker = null;
   let currentLines   = [];
-
+ 
   for (const line of lines) {
     const match = line.match(/^(You|User|Human|Me|ChatGPT|Claude|Gemini|Assistant|AI|GPT-?4?o?|Copilot|Bard)\s*[:\-]\s*/i);
 

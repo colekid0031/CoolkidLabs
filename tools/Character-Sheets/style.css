@@ -7,7 +7,7 @@
     --gold-soft:#a98c53;
     --paper:#ece7db;
     --paper-dim:#c9c2b0;
-  }
+  } 
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:#26241f;font-family:'EB Garamond',serif;}
 

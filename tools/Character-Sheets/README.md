@@ -4,7 +4,7 @@ PROPRIETARY SOURCE-AVAILABLE LICENSECopyright (c) 2026 [Ziony-Cool]
  Ownership and Intellectual PropertyThe Software and its source code are the exclusive intellectual property of the Author ([Ziony-Cool]). 
 All rights not expressly granted under this License are reserved by the Author.
 
-
+ 
 2. 
 Strict RestrictionsNo Copying or Theft: You may not copy, duplicate, replicate, modify, or redistribute the source code or binary files of this Software, in whole or in part, without explicit written permission from the Author.
 

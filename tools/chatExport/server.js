@@ -78,7 +78,7 @@ const NEEDS_PUPPETEER = [
   'claude', 'gemini', 'grok', 'deepseek',
   'kimi', 'mistral', 'notebooklm', 'characterai', 'pi'
 ];
-
+ 
 // ── STRATEGY 1: Extract via cheerio (raw HTML) ────────────────
 function extractWithCheerio($, platform) {
   const turns = [];
