@@ -1,24 +1,30 @@
+
 // ============================================================
-//  ChatExport — server.js
+//  ChatExport — server.js (Full Edition)
 //
-//  A backend server. It receives a public URL from your
-//  website, fetches the page, extracts the chat text, and
-//  sends it back to the user's browser.
+//  Uses TWO strategies to extract chat content:
 //
-//  Users are responsible for what they export.//
-//  This tool only accesses pages the user explicitly shares.
+//  Strategy 1 — node-fetch + cheerio (fast, lightweight)
+//    Works for: ChatGPT, Perplexity, Poe, Phind, HuggingChat
+//    These platforms send real HTML content directly.
 //
-//  Supported platforms (dedicated extractors):
-//  Claude · ChatGPT · Gemini · Grok · DeepSeek · Kimi
-//  Perplexity · Mistral · Copilot · NotebookLM
-//  HuggingChat · Poe · Character.AI · Phind
-//  + generic fallback for any other public URL
+//  Strategy 2 — Puppeteer (full headless Chrome browser)
+//    Works for: Claude, Gemini, Grok, DeepSeek, Kimi, Mistral
+//    These platforms load content via JavaScript/React.
+//    Puppeteer actually runs the JavaScript like a real browser.
+//
+//  The server tries Strategy 1 first (fast).
+//  If it gets no content, it automatically falls back to
+//  Strategy 2 (slower but more powerful).
+//
+//  Users are responsible for what they export.
 // ============================================================
 
-const express = require('express');
-const cors    = require('cors');
-const fetch   = require('node-fetch');
-const cheerio = require('cheerio');
+const express   = require('express');
+const cors      = require('cors');
+const fetch     = require('node-fetch');
+const cheerio   = require('cheerio');
+const puppeteer = require('puppeteer');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -27,35 +33,24 @@ app.use(cors());
 app.use(express.json());
 
 // ── URL safety check ─────────────────────────────────────────
-// We block internal addresses only.
-// Any real public website on the internet is allowed.
+// Protects YOUR server from being used as a hacking tool.
+// Blocks internal/private IPs only — all public URLs are allowed.
 function isSafeURL(rawURL) {
   let parsed;
   try { parsed = new URL(rawURL); } catch { return false; }
-
-  // Must be https
   if (parsed.protocol !== 'https:') return false;
-
   const host = parsed.hostname.toLowerCase();
-
-  // Block internal/private addresses (protects your server, not the user)
   const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
   if (blockedHosts.includes(host)) return false;
-
   const privateRanges = [
-    /^10\./,
-    /^192\.168\./,
-    /^172\.(1[6-9]|2\d|3[01])\./,
-    /^169\.254\./,
-    /^fc00:/,
-    /^fe80:/,
+    /^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./, /^169\.254\./,
+    /^fc00:/, /^fe80:/,
   ];
   if (privateRanges.some(r => r.test(host))) return false;
-
-  return true; // Any real public URL passes
+  return true;
 }
 
-// ── Detect which AI platform the URL is from ─────────────────
+// ── Detect platform ───────────────────────────────────────────
 function detectPlatform(url) {
   if (url.includes('claude.ai'))           return 'claude';
   if (url.includes('chat.openai.com'))     return 'chatgpt';
@@ -80,34 +75,16 @@ function detectPlatform(url) {
   return 'generic';
 }
 
-// ── Platforms that load content via JavaScript ───────────────
-// node-fetch gets raw HTML only — it cannot run JavaScript.
-// These platforms build their pages with React, meaning the
-// chat content is added AFTER the page loads via JS.
-// We still try to extract whatever HTML is available,
-// but warn the user if nothing is found.
-const JS_HEAVY = ['claude', 'gemini', 'grok', 'deepseek', 'kimi', 'mistral', 'notebooklm'];
+// Platforms that NEED Puppeteer (JavaScript-rendered pages)
+const NEEDS_PUPPETEER = [
+  'claude', 'gemini', 'grok', 'deepseek',
+  'kimi', 'mistral', 'notebooklm', 'characterai', 'pi'
+];
 
-// ── Extract chat content from the fetched HTML ───────────────
-// cheerio lets us search HTML with CSS selectors,
-// like jQuery but running in Node.js instead of a browser.
-function extractChat($, platform) {
+// ── STRATEGY 1: Extract via cheerio (raw HTML) ────────────────
+function extractWithCheerio($, platform) {
   const turns = [];
 
-  // ── Claude ───────────────────────────────────────────────
-  if (platform === 'claude') {
-    $('[data-testid="human-turn"], .human-turn, [class*="HumanTurn"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: 'You', text });
-    });
-    $('[data-testid="ai-turn"], .ai-turn, [class*="AiTurn"], [class*="AssistantTurn"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: 'Claude', text });
-    });
-    if (turns.length) return sortAndReturn(turns, 'Claude');
-  }
-
-  // ── ChatGPT ──────────────────────────────────────────────
   if (platform === 'chatgpt') {
     $('[data-message-author-role]').each((i, el) => {
       const role = $(el).attr('data-message-author-role');
@@ -115,98 +92,35 @@ function extractChat($, platform) {
       if (text) turns.push({ speaker: role === 'user' ? 'You' : 'ChatGPT', text });
     });
     if (turns.length) return { turns, platform: 'ChatGPT' };
-
-    // Fallback
-    $('[class*="markdown"], [class*="prose"], .text-base').each((i, el) => {
+    $('[class*="markdown"], [class*="prose"]').each((i, el) => {
       const text = $(el).text().trim();
       if (text.length > 30) turns.push({ speaker: i % 2 === 0 ? 'You' : 'ChatGPT', text });
     });
     if (turns.length) return { turns, platform: 'ChatGPT' };
   }
 
-  // ── Gemini ───────────────────────────────────────────────
-  if (platform === 'gemini') {
-    $('.user-query, [class*="user-message"], user-query').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: 'You', text });
-    });
-    $('.model-response, [class*="model-response"], .response-content').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: 'Gemini', text });
-    });
-    if (turns.length) return { turns, platform: 'Gemini' };
-  }
-
-  // ── Grok ─────────────────────────────────────────────────
-  if (platform === 'grok') {
-    $('[class*="message-bubble"], [class*="MessageBubble"], [data-testid*="message"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Grok', text });
-    });
-    if (turns.length) return { turns, platform: 'Grok' };
-  }
-
-  // ── DeepSeek ─────────────────────────────────────────────
-  if (platform === 'deepseek') {
-    $('[class*="message"], [class*="chat-message"], [class*="MessageItem"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text.length > 10) turns.push({ speaker: i % 2 === 0 ? 'You' : 'DeepSeek', text });
-    });
-    if (turns.length) return { turns, platform: 'DeepSeek' };
-  }
-
-  // ── Kimi ─────────────────────────────────────────────────
-  if (platform === 'kimi') {
-    $('[class*="message"], [class*="chat-item"], [class*="bubble"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text.length > 10) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Kimi', text });
-    });
-    if (turns.length) return { turns, platform: 'Kimi' };
-  }
-
-  // ── Perplexity ───────────────────────────────────────────
   if (platform === 'perplexity') {
-    $('[class*="UserMessage"], [data-testid="user-message"], [class*="query"]').each((i, el) => {
+    $('[class*="UserMessage"], [data-testid="user-message"]').each((i, el) => {
       const text = $(el).text().trim();
       if (text) turns.push({ speaker: 'You', text });
     });
-    $('[class*="AnswerBody"], [class*="answer"], [class*="prose"]').each((i, el) => {
+    $('[class*="AnswerBody"], [class*="prose"]').each((i, el) => {
       const text = $(el).text().trim();
       if (text.length > 50) turns.push({ speaker: 'Perplexity', text });
     });
     if (turns.length) return { turns, platform: 'Perplexity' };
   }
 
-  // ── NotebookLM ───────────────────────────────────────────
-  if (platform === 'notebooklm') {
-    $('[class*="chat-turn"], [class*="ChatTurn"], [class*="message"], chat-turn').each((i, el) => {
+  if (platform === 'poe') {
+    $('[class*="humanMessage"], [class*="botMessage"]').each((i, el) => {
       const text = $(el).text().trim();
-      if (text.length > 10) turns.push({ speaker: i % 2 === 0 ? 'You' : 'NotebookLM', text });
+      if (text) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Bot', text });
     });
-    if (turns.length) return { turns, platform: 'NotebookLM' };
+    if (turns.length) return { turns, platform: 'Poe' };
   }
 
-  // ── Mistral ──────────────────────────────────────────────
-  if (platform === 'mistral') {
-    $('[class*="message"], [class*="MessageRow"], [class*="chat-row"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text.length > 10) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Mistral', text });
-    });
-    if (turns.length) return { turns, platform: 'Mistral' };
-  }
-
-  // ── Copilot ──────────────────────────────────────────────
-  if (platform === 'copilot') {
-    $('[data-testid="user-message"], [data-testid="bot-message"], [class*="message"], cib-message').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text.length > 10) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Copilot', text });
-    });
-    if (turns.length) return { turns, platform: 'Copilot' };
-  }
-
-  // ── HuggingChat ──────────────────────────────────────────
   if (platform === 'huggingchat') {
-    $('[class*="message"], [data-role], [class*="chat"]').each((i, el) => {
+    $('[class*="message"], [data-role]').each((i, el) => {
       const role = $(el).attr('data-role');
       const text = $(el).text().trim();
       if (text.length > 20) turns.push({ speaker: role === 'user' ? 'You' : 'Assistant', text });
@@ -214,78 +128,255 @@ function extractChat($, platform) {
     if (turns.length) return { turns, platform: 'HuggingChat' };
   }
 
-  // ── Poe ──────────────────────────────────────────────────
-  if (platform === 'poe') {
-    $('[class*="humanMessage"], [class*="botMessage"], [class*="Message_humanMessageBubble"], [class*="Message_botMessageBubble"]').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Bot', text });
-    });
-    if (turns.length) return { turns, platform: 'Poe' };
-  }
-
-  // ── Character.AI ─────────────────────────────────────────
-  if (platform === 'characterai') {
-    $('[class*="message"], [data-author-name], [class*="chat-message"]').each((i, el) => {
-      const author = $(el).attr('data-author-name') || (i % 2 === 0 ? 'You' : 'Character');
-      const text = $(el).text().trim();
-      if (text) turns.push({ speaker: author, text });
-    });
-    if (turns.length) return { turns, platform: 'Character.AI' };
-  }
-
-  // ── Phind ────────────────────────────────────────────────
   if (platform === 'phind') {
-    $('[class*="message"], [class*="query"], [class*="answer"]').each((i, el) => {
+    $('[class*="query"], [class*="answer"]').each((i, el) => {
       const text = $(el).text().trim();
       if (text.length > 20) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Phind', text });
     });
     if (turns.length) return { turns, platform: 'Phind' };
   }
 
-  // ── Generic fallback — works for any other URL ────────────
-  // Try common chat-like CSS patterns. This catches platforms
-  // we haven't listed above, as long as their HTML is readable.
+  if (platform === 'copilot') {
+    $('[data-testid="user-message"], [data-testid="bot-message"]').each((i, el) => {
+      const text = $(el).text().trim();
+      if (text.length > 10) turns.push({ speaker: i % 2 === 0 ? 'You' : 'Copilot', text });
+    });
+    if (turns.length) return { turns, platform: 'Copilot' };
+  }
+
+  // Generic fallback
   const genericSelectors = [
     '[class*="message"]', '[class*="Message"]',
-    '[class*="chat"]',    '[class*="Chat"]',
-    '[class*="turn"]',    '[class*="Turn"]',
-    '[class*="bubble"]',  '[class*="Bubble"]',
-    '[class*="conversation"]', '[role="listitem"]',
+    '[class*="chat"]',    '[class*="turn"]',
+    '[class*="bubble"]',  '[role="listitem"]',
   ];
-
   for (const sel of genericSelectors) {
     const els = $(sel);
     if (els.length >= 2 && els.length <= 150) {
       els.each((i, el) => {
         const text = $(el).text().trim();
-        if (text.length > 30) {
-          turns.push({ speaker: i % 2 === 0 ? 'User' : 'Assistant', text });
-        }
+        if (text.length > 30) turns.push({ speaker: i % 2 === 0 ? 'User' : 'Assistant', text });
       });
       if (turns.length >= 2) return { turns, platform: 'Unknown AI' };
       turns.length = 0;
     }
   }
 
-  // ── Last resort: grab the whole page's readable text ─────
+  // Last resort: full page text
   $('nav, footer, header, aside, script, style').remove();
-  const mainEl = $('main, [role="main"], article, #content, .content').first();
+  const mainEl = $('main, [role="main"], article').first();
   const fullText = (mainEl.length ? mainEl : $('body')).text().trim();
-
   if (fullText.length > 100) {
     return {
       turns: [{ speaker: 'Chat', text: fullText }],
       platform: 'Unknown',
-      warning: 'Could not detect individual messages — extracted the full page text. You may want to tidy it up before downloading.'
+      warning: 'Could not detect individual messages — extracted full page text.'
     };
   }
 
   return { turns: [], platform: 'Unknown' };
 }
 
-// Helper — sorts interleaved human/AI turns by order
-function sortAndReturn(turns, platformName) {
-  return { turns, platform: platformName };
+// ── STRATEGY 2: Extract via Puppeteer (headless Chrome) ───────
+// Runs a real browser, waits for JavaScript to load the chat,
+// then reads the rendered HTML. Works for React-based platforms.
+async function extractWithPuppeteer(url, platform) {
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--window-size=1280,900',
+      ]
+    });
+
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+      'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+      'Chrome/124.0.0.0 Safari/537.36'
+    );
+
+    // Load the page and wait for network to settle
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+
+    // Extra wait for slow JS frameworks to finish rendering
+    await new Promise(r => setTimeout(r, 3500));
+
+    // Scroll down to trigger any lazy-loaded content
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await new Promise(r => setTimeout(r, 1000));
+
+    // Run extraction inside the real browser
+    const result = await page.evaluate((plat) => {
+
+      function trySelectors(selectors) {
+        for (const sel of selectors) {
+          const els = document.querySelectorAll(sel);
+          if (els.length > 0) return Array.from(els);
+        }
+        return [];
+      }
+
+      function sortByPosition(items) {
+        return items
+          .map(o => ({ ...o, top: o.el.getBoundingClientRect().top + window.scrollY }))
+          .sort((a, b) => a.top - b.top)
+          .map(({ speaker, el }) => ({ speaker, text: el.innerText.trim() }))
+          .filter(t => t.text.length > 0);
+      }
+
+      // ── Claude ─────────────────────────────────────────────
+      if (plat === 'claude') {
+        const human = trySelectors([
+          '[data-testid="human-turn"]', '.human-turn',
+          '[class*="HumanTurn"]', '[class*="human_turn"]',
+        ]);
+        const ai = trySelectors([
+          '[data-testid="ai-turn"]', '.ai-turn',
+          '[class*="AiTurn"]', '[class*="AssistantTurn"]',
+          '[class*="assistant_turn"]',
+        ]);
+        if (human.length || ai.length) {
+          const all = sortByPosition([
+            ...human.map(el => ({ el, speaker: 'You' })),
+            ...ai.map(el => ({ el, speaker: 'Claude' })),
+          ]);
+          if (all.length) return { turns: all, platform: 'Claude' };
+        }
+      }
+
+      // ── Gemini ─────────────────────────────────────────────
+      if (plat === 'gemini') {
+        const user = trySelectors(['.user-query', '[class*="user-message"]']);
+        const ai   = trySelectors(['.model-response', '[class*="model-response"]']);
+        if (user.length || ai.length) {
+          const all = sortByPosition([
+            ...user.map(el => ({ el, speaker: 'You' })),
+            ...ai.map(el => ({ el, speaker: 'Gemini' })),
+          ]);
+          if (all.length) return { turns: all, platform: 'Gemini' };
+        }
+      }
+
+      // ── Grok ───────────────────────────────────────────────
+      if (plat === 'grok') {
+        const msgs = trySelectors([
+          '[class*="message-bubble"]', '[class*="MessageBubble"]',
+          '[data-testid*="message"]',
+        ]);
+        if (msgs.length) {
+          return {
+            turns: msgs.map((el, i) => ({
+              speaker: i % 2 === 0 ? 'You' : 'Grok',
+              text: el.innerText.trim()
+            })).filter(t => t.text.length > 0),
+            platform: 'Grok'
+          };
+        }
+      }
+
+      // ── DeepSeek ───────────────────────────────────────────
+      if (plat === 'deepseek') {
+        const msgs = trySelectors([
+          '[class*="message"]', '[class*="chat-message"]', '[class*="MessageItem"]',
+        ]);
+        if (msgs.length) {
+          return {
+            turns: msgs.map((el, i) => ({
+              speaker: i % 2 === 0 ? 'You' : 'DeepSeek',
+              text: el.innerText.trim()
+            })).filter(t => t.text.length > 10),
+            platform: 'DeepSeek'
+          };
+        }
+      }
+
+      // ── Kimi ───────────────────────────────────────────────
+      if (plat === 'kimi') {
+        const msgs = trySelectors(['[class*="message"]', '[class*="bubble"]']);
+        if (msgs.length) {
+          return {
+            turns: msgs.map((el, i) => ({
+              speaker: i % 2 === 0 ? 'You' : 'Kimi',
+              text: el.innerText.trim()
+            })).filter(t => t.text.length > 10),
+            platform: 'Kimi'
+          };
+        }
+      }
+
+      // ── Mistral ────────────────────────────────────────────
+      if (plat === 'mistral') {
+        const msgs = trySelectors(['[class*="message"]', '[class*="MessageRow"]']);
+        if (msgs.length) {
+          return {
+            turns: msgs.map((el, i) => ({
+              speaker: i % 2 === 0 ? 'You' : 'Mistral',
+              text: el.innerText.trim()
+            })).filter(t => t.text.length > 10),
+            platform: 'Mistral'
+          };
+        }
+      }
+
+      // ── NotebookLM ─────────────────────────────────────────
+      if (plat === 'notebooklm') {
+        const msgs = trySelectors(['[class*="chat-turn"]', '[class*="ChatTurn"]', '[class*="message"]']);
+        if (msgs.length) {
+          return {
+            turns: msgs.map((el, i) => ({
+              speaker: i % 2 === 0 ? 'You' : 'NotebookLM',
+              text: el.innerText.trim()
+            })).filter(t => t.text.length > 10),
+            platform: 'NotebookLM'
+          };
+        }
+      }
+
+      // ── Generic browser fallback ────────────────────────────
+      const genericSelectors = [
+        '[class*="message"]', '[class*="Message"]',
+        '[class*="chat"]', '[class*="turn"]',
+        '[class*="bubble"]', '[role="listitem"]',
+      ];
+      for (const sel of genericSelectors) {
+        const els = document.querySelectorAll(sel);
+        if (els.length >= 2 && els.length <= 150) {
+          const turns = Array.from(els)
+            .map((el, i) => ({ speaker: i % 2 === 0 ? 'User' : 'Assistant', text: el.innerText.trim() }))
+            .filter(t => t.text.length > 30);
+          if (turns.length >= 2) return { turns, platform: 'Unknown AI' };
+        }
+      }
+
+      // Last resort: full page text
+      const body = document.body.innerText.trim();
+      if (body.length > 100) {
+        return {
+          turns: [{ speaker: 'Chat', text: body }],
+          platform: 'Unknown',
+          warning: 'Could not detect individual messages — extracted full page text.'
+        };
+      }
+
+      return { turns: [], platform: 'Unknown' };
+
+    }, platform);
+
+    await browser.close();
+    browser = null;
+    return result;
+
+  } catch (err) {
+    if (browser) await browser.close().catch(() => {});
+    throw err;
+  }
 }
 
 // ── ROUTE: Health check ───────────────────────────────────────
@@ -304,56 +395,58 @@ app.post('/fetch-chat', async (req, res) => {
   const trimmedURL = url.trim();
 
   if (!isSafeURL(trimmedURL)) {
-    return res.status(400).json({
-      error: 'Please provide a valid public https:// URL.'
-    });
+    return res.status(400).json({ error: 'Please provide a valid public https:// URL.' });
   }
 
   const platform = detectPlatform(trimmedURL);
   console.log(`[ChatExport] Platform: ${platform} | URL: ${trimmedURL}`);
 
   try {
-    // Fetch the page HTML (like a browser loading a URL)
-    const response = await fetch(trimmedURL, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-      },
-      timeout: 20000,
-    });
+    let chatData;
 
-    if (!response.ok) {
-      return res.status(422).json({
-        error: `The page returned an error (${response.status}). Make sure the link is a valid public share link.`
+    if (NEEDS_PUPPETEER.includes(platform)) {
+      // Go straight to Puppeteer for JS-heavy platforms
+      console.log(`[ChatExport] Using Puppeteer for ${platform}`);
+      chatData = await extractWithPuppeteer(trimmedURL, platform);
+    } else {
+      // Try fast cheerio first
+      console.log(`[ChatExport] Trying cheerio for ${platform}`);
+      const response = await fetch(trimmedURL, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+        },
+        timeout: 20000,
       });
-    }
 
-    const html = await response.text();
-    const $    = cheerio.load(html);
+      if (!response.ok) {
+        return res.status(422).json({
+          error: `Page returned error ${response.status}. Make sure it's a valid public share link.`
+        });
+      }
 
-    const chatData = extractChat($, platform);
+      const html = await response.text();
+      const $    = cheerio.load(html);
+      chatData   = extractWithCheerio($, platform);
 
-    // If it's a JS-heavy platform and we got nothing, explain clearly
-    if (JS_HEAVY.includes(platform) && chatData.turns.length === 0) {
-      return res.status(422).json({
-        error:
-          `${platform.charAt(0).toUpperCase() + platform.slice(1)} loads its chat content ` +
-          `using JavaScript, which this server cannot run. ` +
-          `Please copy and paste the chat text manually into the text box below.`
-      });
+      // If cheerio got nothing, fall back to Puppeteer
+      if (!chatData.turns || chatData.turns.length === 0) {
+        console.log(`[ChatExport] Cheerio got nothing, falling back to Puppeteer`);
+        chatData = await extractWithPuppeteer(trimmedURL, platform);
+      }
     }
 
     if (!chatData.turns || chatData.turns.length === 0) {
       return res.status(422).json({
         error:
           'No chat content found on this page. ' +
-          'The link may require login, or the page structure is unusual. ' +
+          'The link may require login or the page structure is unusual. ' +
           'Try copying and pasting the chat manually instead.'
       });
     }
 
-    console.log(`[ChatExport] Extracted ${chatData.turns.length} turns from ${chatData.platform}`);
+    console.log(`[ChatExport] Success — ${chatData.turns.length} turns from ${chatData.platform}`);
 
     res.json({
       success:   true,
@@ -368,14 +461,12 @@ app.post('/fetch-chat', async (req, res) => {
 
   } catch (err) {
     console.error('[ChatExport] Error:', err.message);
-
     let userMessage = 'Failed to fetch the page.';
-    if (err.type === 'request-timeout' || err.message.includes('timeout')) {
-      userMessage = 'The page took too long to load. Try again, or paste the chat manually.';
+    if (err.message.includes('timeout')) {
+      userMessage = 'The page took too long to load. Try again or paste manually.';
     } else if (err.message.includes('ENOTFOUND') || err.message.includes('ECONNREFUSED')) {
       userMessage = 'Could not reach that URL. Check the link and try again.';
     }
-
     res.status(500).json({ error: userMessage });
   }
 });
@@ -387,10 +478,9 @@ app.listen(PORT, () => {
   ║   ChatExport Server is running!              ║
   ║   http://localhost:${PORT}                      ║
   ╠══════════════════════════════════════════════╣
-  ║  Claude · ChatGPT · Gemini · Grok            ║
-  ║  DeepSeek · Kimi · Perplexity · Mistral      ║
-  ║  Copilot · NotebookLM · HuggingChat · Poe   ║
-  ║  Character.AI · Phind · + any public URL     ║
+  ║  Strategy 1: cheerio  (fast HTML fetch)      ║
+  ║  Strategy 2: Puppeteer (full headless Chrome)║
+  ║  Auto-selects the best method per platform   ║
   ╚══════════════════════════════════════════════╝
   Press Ctrl+C to stop.
   `);
