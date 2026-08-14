@@ -29,17 +29,22 @@ const path = require('path');
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-// Set permissive CSP header to allow jsPDF (which uses eval internally)
+// Set CSP header — single source of truth (no meta tag in HTML).
+// Rules:
+//   script-src  — allows jsPDF via cdnjs (needs 'unsafe-eval' for jsPDF internals)
+//   style-src   — allows inline styles + Google Fonts stylesheet
+//   font-src    — allows Google Fonts binary files (fonts.gstatic.com) + cdnjs icon fonts
+//   connect-src — allows our Railway backend + cdnjs (jsPDF fetches its own source map)
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
     [
-      "default-src 'self' https:",
+      "default-src 'self'",
       "script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com",
-      "style-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https://coolkidlabs-production.up.railway.app",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+      "connect-src 'self' https://coolkidlabs-production.up.railway.app https://cdnjs.cloudflare.com",
       "img-src 'self' data:",
-      "font-src 'self' data: https://cdnjs.cloudflare.com",
     ].join('; ')
   );
   next();

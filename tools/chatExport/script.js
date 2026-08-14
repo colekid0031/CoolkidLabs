@@ -357,3 +357,27 @@ function showToast() {
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
+
+// ── Event Wiring ──────────────────────────────────────────────
+// All handlers are attached here instead of inline onclick/oninput
+// attributes, so the page works under a strict Content-Security-Policy
+// that does not include 'unsafe-inline' for scripts.
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('fetchBtn')
+    .addEventListener('click', fetchFromURL);
+
+  document.getElementById('chatInput')
+    .addEventListener('input', updateStats);
+
+  document.getElementById('btn-txt')
+    .addEventListener('click', () => selectFormat('txt'));
+
+  document.getElementById('btn-pdf')
+    .addEventListener('click', () => selectFormat('pdf'));
+
+  document.getElementById('btn-md')
+    .addEventListener('click', () => selectFormat('md'));
+
+  document.getElementById('downloadBtn')
+    .addEventListener('click', downloadFile);
+});

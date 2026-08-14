@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://coolkidlabs-production.up.railway.app; img-src 'self' data:;">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ChatExport — Save Your AI Chats</title>
@@ -59,7 +58,7 @@
             id="shareURL"
             placeholder="https://claude.ai/share/...  |  https://chat.openai.com/share/...  |  any public AI chat link"
           />
-          <button class="fetch-btn" id="fetchBtn" onclick="fetchFromURL()">
+          <button class="fetch-btn" id="fetchBtn">
             ↓ Import Chat
           </button>
         </div>
@@ -88,7 +87,7 @@
             <div class="step-desc">Copy your AI conversation and paste it below</div>
           </div>
         </div>
-        <textarea id="chatInput" placeholder="Paste your AI chat here... (or use the Import link above)" oninput="updateStats()"></textarea>
+        <textarea id="chatInput" placeholder="Paste your AI chat here... (or use the Import link above)"></textarea>
         <div class="stats-bar">
           <div class="stat">Characters: <span class="stat-value" id="charCount">0</span></div>
           <div class="stat">Words: <span class="stat-value" id="wordCount">0</span></div>
@@ -123,17 +122,17 @@
           </div>
         </div>
         <div class="format-grid">
-          <button class="format-btn active" id="btn-txt" onclick="selectFormat('txt')">
+          <button class="format-btn active" id="btn-txt">
             <span class="format-icon">📄</span>
             <span class="format-name">Plain Text</span>
             <span class="format-desc">.txt — simple &amp; universal</span>
           </button>
-          <button class="format-btn" id="btn-pdf" onclick="selectFormat('pdf')">
+          <button class="format-btn" id="btn-pdf">
             <span class="format-icon">📕</span>
             <span class="format-name">PDF</span>
             <span class="format-desc">.pdf — great for sharing</span>
           </button>
-          <button class="format-btn" id="btn-md" onclick="selectFormat('md')">
+          <button class="format-btn" id="btn-md">
             <span class="format-icon">🗒️</span>
             <span class="format-name">Markdown</span>
             <span class="format-desc">.md — for notes &amp; GitHub</span>
@@ -154,7 +153,7 @@
         </div>
         <div id="previewBox" class="preview-box"></div>
         <div style="height:12px;"></div>
-        <button class="download-btn" id="downloadBtn" onclick="downloadFile()" disabled>
+        <button class="download-btn" id="downloadBtn" disabled>
           ⬇ Download File
         </button>
       </div>
