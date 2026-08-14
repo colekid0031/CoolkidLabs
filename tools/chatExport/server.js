@@ -21,30 +21,24 @@ const express   = require('express');
 const cors      = require('cors');
 // fetch is built into Node 18+ — no import needed
 const cheerio   = require('cheerio');
-const puppeteer = require('puppeteer-core');
-const chromium  = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer');
 
 const path = require('path');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-// Set CSP header — single source of truth (no meta tag in HTML).
-// Rules:
-//   script-src  — allows jsPDF via cdnjs (needs 'unsafe-eval' for jsPDF internals)
-//   style-src   — allows inline styles + Google Fonts stylesheet
-//   font-src    — allows Google Fonts binary files (fonts.gstatic.com) + cdnjs icon fonts
-//   connect-src — allows our Railway backend + cdnjs (jsPDF fetches its own source map)
+// Set permissive CSP header to allow jsPDF (which uses eval internally)
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
     [
-      "default-src 'self'",
+      "default-src 'self' https:",
       "script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
-      "connect-src 'self' https://coolkidlabs-production.up.railway.app https://cdnjs.cloudflare.com",
+      "style-src 'self' 'unsafe-inline'",
+      "connect-src 'self' https://coolkidlabs-production.up.railway.app",
       "img-src 'self' data:",
+      "font-src 'self' data: https://cdnjs.cloudflare.com",
     ].join('; ')
   );
   next();
@@ -208,10 +202,16 @@ async function extractWithPuppeteer(url, platform) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      headless: true,
+      args: [
+        '--no-sandbox',            // required in Docker/Railway containers
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // /dev/shm is tiny in Docker; use /tmp instead
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+      ],
     });
 
     const page = await browser.newPage();
@@ -488,7 +488,9 @@ app.post('/fetch-chat', async (req, res) => {
     } else if (err.message.includes('ENOTFOUND') || err.message.includes('ECONNREFUSED')) {
       userMessage = 'Could not reach that URL. Check the link and try again.';
     }
-    res.status(500).json({ error: userMessage });
+    // Include the real error message so it shows in the browser console,
+    // not just buried in Railway logs.
+    res.status(500).json({ error: userMessage, serverError: err.message });
   }
 });
 
