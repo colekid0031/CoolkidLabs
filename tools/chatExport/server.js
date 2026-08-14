@@ -24,11 +24,32 @@ const cheerio   = require('cheerio');
 const puppeteer = require('puppeteer-core');
 const chromium  = require('@sparticuz/chromium');
 
+const path = require('path');
+
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
+// Set permissive CSP header to allow jsPDF (which uses eval internally)
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self' https:",
+      "script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com",
+      "style-src 'self' 'unsafe-inline'",
+      "connect-src 'self' https://coolkidlabs-production.up.railway.app",
+      "img-src 'self' data:",
+      "font-src 'self' data: https://cdnjs.cloudflare.com",
+    ].join('; ')
+  );
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
+
+// Serve the frontend static files
+app.use(express.static(path.join(__dirname)));
 
 // ── URL safety check ─────────────────────────────────────────
 // Protects The server from being used as a hacking tool.
