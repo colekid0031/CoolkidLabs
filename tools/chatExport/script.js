@@ -8,6 +8,24 @@
 //  server fetches + extracts → we get back clean chat text.
 
 const SERVER_URL = 'https://coolkidlabs-production.up.railway.app';
+
+// ── Supported and Blocked Platforms ──────────────────────────
+const SUPPORTED_PLATFORMS = [
+  'ChatGPT', 'Poe', 'Phind', 'Grok', 'Copilot', 
+  'Character.AI', 'Pi.ai', 'You.com'
+];
+
+const BLOCKED_PLATFORMS = {
+  'claude': 'Claude has strong security protections that prevent our tool from working.',
+  'perplexity': 'Perplexity blocks automated access.',
+  'kimi': 'Kimi has security restrictions that prevent extraction.',
+  'gemini': 'Google Gemini blocks our extraction method.',
+  'notebooklm': 'Google NotebookLM requires authentication.',
+  'huggingchat': 'HuggingChat requires authentication to access saved chats.',
+  'deepseek': 'DeepSeek has protection against automated access.',
+  'mistral': 'Mistral has protection against automated access.'
+};
+
 // ── State ─────────────────────────────────────────────────────
 let selectedFormat = 'txt';
 
@@ -35,8 +53,8 @@ function updateStats() {
 }
 
 // ── URL Fetcher ───────────────────────────────────────────────
-//This is Called when the user clicks "Import from Link".
-// It sends the URL to The server and fills the text area with the result.
+// Called when the user clicks "Import from Link".
+// It sends the URL to the server and fills the text area with the result.
 async function fetchFromURL() {
   const urlInput    = document.getElementById('shareURL');
   const fetchBtn    = document.getElementById('fetchBtn');
@@ -55,54 +73,82 @@ async function fetchFromURL() {
     return;
   }
 
-  // 3. Show loading state — disable button so they can't double-click
+  // 3. Check for blocked platforms on client side first
+  for (const [platform, message] of Object.entries(BLOCKED_PLATFORMS)) {
+    if (url.includes(platform) || 
+        (platform === 'claude' && url.includes('claude.ai')) ||
+        (platform === 'perplexity' && url.includes('perplexity.ai')) ||
+        (platform === 'kimi' && (url.includes('kimi.ai') || url.includes('moonshot'))) ||
+        (platform === 'gemini' && url.includes('gemini.google')) ||
+        (platform === 'notebooklm' && (url.includes('notebooklm.google') || url.includes('notebook.google'))) ||
+        (platform === 'huggingchat' && url.includes('huggingface.co/chat')) ||
+        (platform === 'deepseek' && url.includes('deepseek.com')) ||
+        (platform === 'mistral' && url.includes('mistral.ai'))) {
+      showFetchStatus(`Sorry, ${message} Try a different link (ChatGPT, Poe, Phind, Grok, Copilot, etc.)`, 'error');
+      return;
+    }
+  }
+
+  // 4. Show loading state — disable button so they can't double-click
   fetchBtn.disabled    = true;
   fetchBtn.textContent = '⏳ Fetching...';
   showFetchStatus('Connecting to server and loading the chat page…', 'loading');
 
   try {
-    // 4. Send a POST request to our Node.js server
-    //    fetch() is the browser's built-in way to make HTTP requests.
-    //    We're calling OUR server, not the AI site directly — that's the key.
+    // 5. Send a POST request to our Node.js server
     const response = await fetch(`${SERVER_URL}/fetch-chat`, {
-      method: 'POST',                            // POST = sending data to server
+      method: 'POST',
       headers: {
-        'Content-Type': 'application/json'       // Tell server we're sending JSON
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ url: url })         // Convert JS object → JSON string
+      body: JSON.stringify({ url: url })
     });
 
-    // 5. Parse the server's JSON response back into a JavaScript object
+    // 6. Parse the server's JSON response
     const data = await response.json();
 
-    // 6. Check if the server reported an error
-    if (!response.ok || !data.success) {
-      showFetchStatus(data.error || 'Something went wrong. Try again.', 'error');
+    // 7. Check if the server reported an error
+    if (!data.success) {
+      // Better error messages based on server response
+      if (data.error && data.error.toLowerCase().includes('not supported')) {
+        showFetchStatus(`Sorry, that AI is not supported. Try a different platform: ${SUPPORTED_PLATFORMS.join(', ')}`, 'error');
+      } else if (data.error && (data.error.toLowerCase().includes('cloudflare') || data.error.toLowerCase().includes('protection') || data.error.toLowerCase().includes('blocks'))) {
+        showFetchStatus(`Sorry, that AI isn't supported. Try a different link.`, 'error');
+      } else if (data.error && data.error.toLowerCase().includes('timeout')) {
+        showFetchStatus('The page took too long to load. Try again or paste manually.', 'error');
+      } else if (data.error && data.error.toLowerCase().includes('no chat content')) {
+        showFetchStatus('No chat found on that page. The link may be expired or require login. Try pasting manually.', 'error');
+      } else if (data.error && (data.error.toLowerCase().includes('unavailable') || data.error.toLowerCase().includes('not available'))) {
+        showFetchStatus('Sorry, our services are currently not available right now. Try again later.', 'error');
+      } else {
+        showFetchStatus(data.error || 'Something went wrong. Try again.', 'error');
+      }
       return;
     }
 
-    // 7. SUCCESS — fill the textarea with the extracted text
+    // 8. SUCCESS — fill the textarea with the extracted text
     const textarea = document.getElementById('chatInput');
     textarea.value = data.plainText;
 
-    // 8. Update everything that depends on the textarea content
+    // 9. Update everything that depends on the textarea content
     updateStats();
     updatePreview();
 
-    // 9. Show a success message with platform name and turn count
+    // 10. Show a success message with platform name and turn count
     let successMsg = `✓ Imported ${data.turns.length} messages from ${data.platform}`;
     if (data.warning) successMsg += ` — Note: ${data.warning}`;
     showFetchStatus(successMsg, data.warning ? 'loading' : 'success');
 
   } catch (networkError) {
-    // This catches connection errors — e.g. if the server isn't running
+    // This catches connection errors
     console.error('Network error:', networkError);
-    showFetchStatus(
-      'Could not connect to the ChatExport server. ' +
-      'Make sure Your internet is running (If it is... Our servers may be down).',
-      'error'
-    );
-
+    
+    // Check if it's likely an internet connection issue
+    if (networkError instanceof TypeError) {
+      showFetchStatus('Please check your internet connection and try again.', 'error');
+    } else {
+      showFetchStatus('Sorry, our services are currently not available right now. Try again later.', 'error');
+    }
   } finally {
     // "finally" runs whether we succeeded or failed — always restore the button
     fetchBtn.disabled    = false;
@@ -117,7 +163,7 @@ function showFetchStatus(message, type) {
   if (!el) return;
 
   el.textContent = message;
-  el.className   = 'fetch-status fetch-status--' + type; // CSS will style these
+  el.className   = 'fetch-status fetch-status--' + type;
   el.style.display = 'block';
 
   // Auto-hide success messages after 4 seconds
@@ -127,29 +173,46 @@ function showFetchStatus(message, type) {
 }
 
 // ── Chat Parser ───────────────────────────────────────────────
-// Detects speaker turns like "YOU:", "CHATGPT:", "CLAUDE:" etc.
+// Improved parser that properly distinguishes user vs AI messages
 function parseChatTurns(rawText) {
   const lines = rawText.split('\n');
   const turns = [];
   let currentSpeaker = null;
   let currentLines   = [];
- 
+  
+  // Regex to detect speaker labels with colon or dash
+  const speakerRegex = /^(You|User|Human|Me|ChatGPT|Claude|Gemini|Assistant|AI|GPT-?4|Copilot|Bard|DeepSeek|Grok|Kimi|Perplexity|Mistral|Poe|Phind|Character|Pi)\s*[:\-]\s*/i;
+
   for (const line of lines) {
-    const match = line.match(/^(You|User|Human|Me|ChatGPT|Claude|Gemini|Assistant|AI|GPT-?4?o?|Copilot|Bard)\s*[:\-]\s*/i);
+    const match = line.match(speakerRegex);
 
     if (match) {
+      // Found a new speaker label
       if (currentSpeaker !== null && currentLines.length > 0) {
-        turns.push({ speaker: currentSpeaker, text: currentLines.join('\n').trim() });
+        // Save the previous message
+        turns.push({ 
+          speaker: currentSpeaker, 
+          text: currentLines.join('\n').trim(),
+          role: speakerRole(currentSpeaker)
+        });
       }
+      // Start new message
       currentSpeaker = match[1];
-      currentLines   = [line.replace(match[0], '').trim()];
-    } else {
+      const restOfLine = line.replace(match[0], '').trim();
+      currentLines = restOfLine ? [restOfLine] : [];
+    } else if (currentSpeaker !== null) {
+      // Continuation of current message
       currentLines.push(line);
     }
   }
 
+  // Don't forget the last message
   if (currentSpeaker !== null && currentLines.length > 0) {
-    turns.push({ speaker: currentSpeaker, text: currentLines.join('\n').trim() });
+    turns.push({ 
+      speaker: currentSpeaker, 
+      text: currentLines.join('\n').trim(),
+      role: speakerRole(currentSpeaker)
+    });
   }
 
   return turns;
@@ -187,21 +250,22 @@ function updatePreview() {
       }
 
       const bubble = document.createElement('div');
+      const isHuman = turn.role === 'human';
       bubble.style.cssText = `
         margin-bottom: 10px;
         padding: 8px 12px;
         border-radius: 8px;
-        background: ${speakerRole(turn.speaker) === 'human' ? 'rgba(79,138,255,0.10)' : 'rgba(167,139,250,0.10)'};
-        border-left: 3px solid ${speakerRole(turn.speaker) === 'human' ? 'var(--accent)' : 'var(--accent2)'};
+        background: ${isHuman ? 'rgba(79,138,255,0.10)' : 'rgba(167,139,250,0.10)'};
+        border-left: 3px solid ${isHuman ? 'var(--accent)' : 'var(--accent2)'};
       `;
 
       const label = document.createElement('div');
       label.style.cssText = `
         font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
         letter-spacing: 0.08em; margin-bottom: 4px;
-        color: ${speakerRole(turn.speaker) === 'human' ? 'var(--accent)' : 'var(--accent2)'};
+        color: ${isHuman ? 'var(--accent)' : 'var(--accent2)'};
       `;
-      label.textContent = turn.speaker;
+      label.textContent = (isHuman ? '👤 You' : '🤖 AI') + ' — ' + turn.speaker;
 
       const body = document.createElement('div');
       body.style.cssText = 'font-size: 0.78rem; color: var(--text); white-space: pre-wrap; word-break: break-word;';
@@ -237,18 +301,23 @@ function downloadFile() {
 // ── TXT Export ────────────────────────────────────────────────
 function downloadAsTXT(text, fileName, sourceURL) {
   const turns    = parseChatTurns(text);
-  const divider  = '='.repeat(60);
-  let content = `CHAT EXPORT — ChatExport.app\nExported: ${new Date().toLocaleString()}\n`;
-  if (sourceURL) content += `Source:   ${sourceURL}\n`;
-  content += `${divider}\n\n`;
+  const divider  = '='.repeat(70);
+  let content = `CHAT EXPORT — ChatExport.app
+Exported: ${new Date().toLocaleString()}
+${sourceURL ? `Source:   ${sourceURL}\n` : ''}${divider}
+
+`;
+  
   if (turns.length > 0) {
     for (const turn of turns) {
-      content += `[${turn.speaker.toUpperCase()}]\n${turn.text}\n\n`;
+      const role = turn.role === 'human' ? '[USER]' : '[AI]';
+      content += `${role} ${turn.speaker}:\n${turn.text}\n\n`;
     }
   } else {
     content += text + '\n';
   }
-  content += `\n${divider}\nDownloaded from ChatExport.app`;
+  content += `\n${divider}
+Downloaded from ChatExport.app`;
   triggerDownload(new Blob([content], { type: 'text/plain' }), fileName + '.txt');
 }
 
@@ -258,9 +327,11 @@ function downloadAsMD(text, fileName, sourceURL) {
   let content = `# Chat Export\n\n**Exported:** ${new Date().toLocaleString()}  \n`;
   if (sourceURL) content += `**Source:** ${sourceURL}  \n`;
   content += `**Tool:** ChatExport.app\n\n---\n\n`;
+  
   if (turns.length > 0) {
     for (const turn of turns) {
-      content += `## ${turn.speaker}\n\n${turn.text}\n\n---\n\n`;
+      const role = turn.role === 'human' ? '👤 USER' : '🤖 AI';
+      content += `### ${role}\n\n**${turn.speaker}**\n\n${turn.text}\n\n---\n\n`;
     }
   } else {
     content += `\`\`\`\n${text}\n\`\`\`\n\n`;
@@ -303,15 +374,20 @@ function downloadAsPDF(text, fileName, sourceURL) {
   const turns = parseChatTurns(text);
   if (turns.length > 0) {
     for (const turn of turns) {
-      const isHuman = speakerRole(turn.speaker) === 'human';
+      const isHuman = turn.role === 'human';
       if (y > pageH - 30) { doc.addPage(); y = 20; }
+      
+      // Header with role indicator
       doc.setFillColor(...(isHuman ? [79, 138, 255] : [167, 139, 250]));
       doc.roundedRect(margin, y, maxW, 7, 1.5, 1.5, 'F');
       doc.setTextColor(...(isHuman ? [79, 138, 255] : [167, 139, 250]));
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
-      doc.text(turn.speaker.toUpperCase(), margin + 3, y + 5);
+      const roleLabel = (isHuman ? '👤 USER' : '🤖 AI') + ' — ' + turn.speaker.toUpperCase();
+      doc.text(roleLabel, margin + 3, y + 5);
       y += 10;
+      
+      // Message content
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(40, 42, 54);
@@ -359,9 +435,6 @@ function showToast() {
 }
 
 // ── Event Wiring ──────────────────────────────────────────────
-// All handlers are attached here instead of inline onclick/oninput
-// attributes, so the page works under a strict Content-Security-Policy
-// that does not include 'unsafe-inline' for scripts.
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fetchBtn')
     .addEventListener('click', fetchFromURL);
