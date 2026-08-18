@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .addEventListener('click', fetchFromURL);
 
   document.getElementById('chatInput')
-    .addEventListener('input', updateStats);
+    .addEventListener('input', updateStats); 
 
   document.getElementById('btn-txt')
     .addEventListener('click', () => selectFormat('txt'));
