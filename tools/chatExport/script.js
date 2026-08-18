@@ -172,18 +172,39 @@ function showFetchStatus(message, type) {
   }
 }
 
-// ── Chat Parser ───────────────────────────────────────────────
-// Improved parser that properly distinguishes user vs AI messages
+// ── Improved Chat Parser ──────────────────────────────────────
+// Now detects WHO sent the first message and uses that to alternate roles correctly
 function parseChatTurns(rawText) {
-  const lines = rawText.split('\n');
+  const lines = rawText.split('\n').filter(line => line.trim().length > 0);
+  
+  if (lines.length === 0) return [];
+
+  // Find the first explicit speaker marker
+  let firstSpeaker = null;
+  let startIndex = 0;
+  
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const speakerMatch = lines[i].match(/^(USER|ASSISTANT|You|AI|ChatGPT|Claude|Gemini|Assistant|Me|Human)\s*[:\-]/i);
+    if (speakerMatch) {
+      firstSpeaker = speakerMatch[1].toLowerCase();
+      startIndex = i;
+      break;
+    }
+  }
+
+  // Determine if user or AI went first
+  const isUserFirst = firstSpeaker && ['user', 'you', 'me', 'human'].includes(firstSpeaker);
+
   const turns = [];
   let currentSpeaker = null;
   let currentLines   = [];
+  let messageIndex = 0; // Track message order
   
   // Regex to detect speaker labels with colon or dash
   const speakerRegex = /^(You|User|Human|Me|ChatGPT|Claude|Gemini|Assistant|AI|GPT-?4|Copilot|Bard|DeepSeek|Grok|Kimi|Perplexity|Mistral|Poe|Phind|Character|Pi)\s*[:\-]\s*/i;
 
-  for (const line of lines) {
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i];
     const match = line.match(speakerRegex);
 
     if (match) {
@@ -193,7 +214,8 @@ function parseChatTurns(rawText) {
         turns.push({ 
           speaker: currentSpeaker, 
           text: currentLines.join('\n').trim(),
-          role: speakerRole(currentSpeaker)
+          role: speakerRole(currentSpeaker),
+          index: messageIndex++
         });
       }
       // Start new message
@@ -203,6 +225,14 @@ function parseChatTurns(rawText) {
     } else if (currentSpeaker !== null) {
       // Continuation of current message
       currentLines.push(line);
+    } else {
+      // No speaker identified yet, assume it's the first message
+      if (isUserFirst) {
+        currentSpeaker = 'User';
+      } else {
+        currentSpeaker = 'Assistant';
+      }
+      currentLines = [line];
     }
   }
 
@@ -211,7 +241,15 @@ function parseChatTurns(rawText) {
     turns.push({ 
       speaker: currentSpeaker, 
       text: currentLines.join('\n').trim(),
-      role: speakerRole(currentSpeaker)
+      role: speakerRole(currentSpeaker),
+      index: messageIndex
+    });
+  }
+
+  // If we still don't have proper roles, alternate based on first speaker
+  if (turns.length > 0 && !firstSpeaker) {
+    turns.forEach((turn, i) => {
+      turn.role = (i % 2 === 0) ? (isUserFirst ? 'human' : 'ai') : (isUserFirst ? 'ai' : 'human');
     });
   }
 
