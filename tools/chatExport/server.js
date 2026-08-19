@@ -510,7 +510,15 @@ app.post('/fetch-chat', async (req, res) => {
       turnCount: chatData.turns.length,
       turns:     chatData.turns,
       plainText: chatData.turns
-        .map(t => `${t.speaker.toUpperCase()}:\n${t.text}`)
+        .map(t => {
+          // Use standardised role labels (ASSISTANT / USER) — NOT the speaker
+          // name — so that if the user edits the textarea and we fall back to
+          // parseChatTurns(), the regex can still identify who said what.
+          // Using the speaker name (e.g. "CHATGPT:", "YOU:") would work too,
+          // but would fail for any platform whose name isn't in speakerRegex.
+          const roleLabel = (t.role === 'user' || t.role === 'human') ? 'USER' : 'ASSISTANT';
+          return `${roleLabel}:\n${t.text}`;
+        })
         .join('\n\n')
     });
 

@@ -204,7 +204,11 @@ function parseChatTurns(rawText) {
   // Matches optional [USER]/[AI] bracket prefix, then the speaker name and colon/dash.
   // The bracket prefix is produced by our own TXT/MD exports — supporting it means
   // a previously-exported file can be re-imported and still parsed correctly.
-  const speakerRegex = /^(?:\[(?:USER|AI|ASSISTANT|HUMAN|BOT)\]\s+)?(You|User|Human|Me|ChatGPT|Claude|Gemini|Assistant|AI|GPT-?4o?|Copilot|Bard|DeepSeek|Grok|Kimi|Perplexity|Mistral|Poe|Phind|Character|Pi|Bot|System)\s*[:\-]\s*/i;
+  //
+  // IMPORTANT: ASSISTANT and USER are listed first in the alternation so they
+  // take priority over shorter partial matches (e.g. "AI" inside "ASSISTANT").
+  // These are the canonical labels written by server.js into plainText.
+  const speakerRegex = /^(?:\[(?:USER|AI|ASSISTANT|HUMAN|BOT)\]\s+)?(ASSISTANT|USER|You|User|Human|Me|ChatGPT|Claude|Gemini|Assistant|AI|GPT-?4o?|Copilot|Bard|DeepSeek|Grok|Kimi|Perplexity|Mistral|Poe|Phind|Character|Pi|Bot|System)\s*[:\-]\s*/i;
 
   const turns       = [];
   let currentSpeaker = null;
@@ -266,9 +270,21 @@ function parseChatTurns(rawText) {
 }
 
 // Maps a speaker name to 'human' or 'ai'.
+// The canonical labels from server.js are 'ASSISTANT' and 'USER' (case-insensitive).
+// All other names are matched by list — AI names → 'ai', human names → 'human'.
 function speakerRole(speaker) {
-  const humanSpeakers = ['you', 'user', 'human', 'me'];
-  return humanSpeakers.includes(speaker.toLowerCase()) ? 'human' : 'ai';
+  const name = speaker.toLowerCase();
+
+  // Canonical role labels written by server.js plainText generation
+  if (name === 'assistant') return 'ai';
+  if (name === 'user')      return 'human';
+
+  // Human speaker names
+  const humanSpeakers = ['you', 'human', 'me'];
+  if (humanSpeakers.includes(name)) return 'human';
+
+  // Everything else (ChatGPT, Claude, Bot, AI, Grok, etc.) is the AI
+  return 'ai';
 }
 
 // ── Preview ───────────────────────────────────────────────────
