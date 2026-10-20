@@ -47,7 +47,8 @@ a{
     height: 120px;
     /* outline: red solid 2px; */
     display: flex; justify-content: center;align-items: center; flex-wrap: wrap;
-    background-color:#4a0478a4 ;
+    background-color:#4a0478a4 ; color: #a2a09d;
+    font-weight: bold;
     border-radius: 16px;
  }
  .Speech{
@@ -135,4 +136,7 @@ margin: 5px;
 }
 #BottomInfo > a{
 color: #888484;
+}
+#purple{
+    color: #4a0478a4;
 }
