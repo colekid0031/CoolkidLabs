@@ -79,7 +79,7 @@ img{
 }
 #BottomInfo{
     width: 100%; height: 200px;
-    background-image: linear-gradient(to top,#000000,#7020FF );
+    background-image: linear-gradient(to top,#08080A,#7020FF );
     display: flex; justify-content: space-around; align-items: center;
     
 
@@ -90,3 +90,110 @@ color: #888484;
 #purple{
     color: #4a0478a4;
 }
+
+/* tool Cards section */
+/* Container for the tools grid */
+.tool-dashboard {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 40px;
+  /* keep this empty to be transparent */
+  background-image: linear-gradient();
+}
+
+/* Individual Tool Card */
+.tool-card {
+  position: relative;
+  width: 300px;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  cursor: pointer;
+  
+  /* Smooth transitions for expansion */
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.4s ease;
+}
+
+/* Image Wrapper */
+.image-box {
+  width: 100%;
+  height: 100%;
+}
+
+.image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+/* Info Panel that Slides Up */
+.info-slide {
+  position: absolute;
+  left: 0;
+  bottom: -100%; /* Completely hidden underneath by default */
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 100%);
+  color: #ffffff;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  
+  /* Smooth slide animation transition */
+  transition: bottom 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.info-slide h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.4rem;
+  font-family: sans-serif;
+}
+
+.info-slide p {
+  font-size: 0.9rem;
+  margin: 0 0 15px 0;
+  opacity: 0.85;
+  line-height: 1.4;
+  font-family: sans-serif;
+}
+
+.action-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+
+/* 1. Expand the card smoothly when hovered */
+.tool-card:hover {
+  transform: scale(1.06); /* Expands outward slightly */
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* 2. Slide the info box up over the image when hovered */
+.tool-card:hover .info-slide {
+  bottom: 0; 
+}
+
+/* 3. Give the image a subtle zoom enhancement simultaneously */
+.tool-card:hover .image-box img {
+  transform: scale(1.1);
+}
+
+
+/* End of section */
