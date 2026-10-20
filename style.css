@@ -77,56 +77,6 @@ img{
     height: 220px;
     border-radius: 10px;
 }
-/* head guide */
-.TopTitle {
-    width: 100%; height: 50px;
-    color: #00fbff; background-image: linear-gradient(to left,black,#8c00ff);
-    display: flex; justify-content: space-between;
-    margin-bottom: 10px;
-}
-.Name{
-    /* outline: red solid 2px; */
-    display: flex; justify-content: space-around;
-    width: 200px; height: 50px;
-}
-.Description{
-    /* outline: red solid 2px; */
-    display: flex;justify-content: center;
-    width: 300px; height: 50px;
-}
-.Button{
-    /* outline: red solid 2px; */
-    display: flex;justify-content: center;
-    width: 400px; height: 50px;
-}
-/* Graph Css Containers */
-
-.Container{
-outline: rgb(0, 0, 0) solid 2px;
-width: 100%;
-height: 220px;
-display: flex;justify-content: baseline;align-items: center;
-margin: 5px;
-
-}
-.TitleContainer{
-    display: flex;justify-content: center; align-items: center;
-    width: 200px; height: 200px; 
-    padding: 10px;
-    background-color: rgb(0, 0, 0);
-/* outline: red solid 2px; */
-}
-.DescriptionContainer{
-    display: flex;justify-content: center; align-items: center;
-    /* outline: red solid 2px; */
-    width: 500px; height: 220px; 
-}
-.LogoContainer{
-    /* outline: red solid 2px; */
-    display: flex;justify-content: center; align-items: center;
-    flex-shrink: 1;width: 450px;
-    height: 220px;
-}
 #BottomInfo{
     width: 100%; height: 200px;
     background-image: linear-gradient(to top,#000000,#7020FF );
