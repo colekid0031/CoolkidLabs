@@ -1,3 +1,5 @@
+
+// reload Btn settings index.html main page
 (() => {
   const button = document.getElementById('ckl-reload-control');
   if (!button) return;

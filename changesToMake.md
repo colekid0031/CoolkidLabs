@@ -3,6 +3,7 @@
 ---
 
 ## Main Changes
+fix all bugs and improve viewing on phone devices
  
  edit footer to better styling change the link tags to fit the color pallet 
  edit footer box as well to fit 
