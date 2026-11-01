@@ -82,7 +82,24 @@ a{
     display: flex; justify-content: center; align-items: center;
     border-radius: 20px;
 }
+/* sideBar */
+.menu-toggle {
+    background: transparent;
+    border: none;
+    color: #00eaff;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s ease;
+}
 
+.menu-toggle:hover {
+    color: #a855f7;
+    transform: scale(1.1);
+}
+/*  */
 
 /* Universal Img Rule */
 img{
