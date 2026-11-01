@@ -34,15 +34,17 @@ a{
     font-size: large;
 }
 
-.logo {
-    /* outline: red solid 2px; */
-    color: #FFFFFF;
+.logo p {
+  display: flex; justify-content: center;
+    width: 50%; 
+    position: relative; left: 20%;
+  color: #FFFFFF;
   font-size: 1.9rem;
   font-weight: 700;
   letter-spacing: -0.03em; text-align: left; margin: 10px;
 }
 
-.logo >span { 
+.logo > p > span { 
     color: #4f8aff;
  }
  .TopContainer{
