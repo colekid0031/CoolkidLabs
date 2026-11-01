@@ -2,12 +2,10 @@
 
 ---
 
-## Main Changes
-<!-- fix all bugs and improve viewing on phone devices
- 
- edit footer to better styling change the link tags to fit the color pallet 
- edit footer box as well to fit  -->
-## still needs to be done/
- design favicon for CoolKidLabs / logo 
- put logo beside CoolkidLabs name in top 
- design thumbails for CoolKidLabs tools charatersheet/Docx converter Photo converter
+## things to do
+:Add sidebars to page left side Bar with 3 main sectors sector 1 2 and 3 keep  them empty for now
+
+## bug fixes
+1: fix txt sizing on site to scale for mobile use 
+
+2:fix relavitive path to PlaceHolder images.
