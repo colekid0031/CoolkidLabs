@@ -3,17 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>CoolkidLabs</title>
+
     <link rel="stylesheet" href="style.css">
-      <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Audiowide&family=Rajdhani:wght@300;500;700&family=Exo+2:wght@300;500;700&family=Oxanium:wght@400;700&family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans:wght@400;700&family=DotGothic16&family=Space+Grotesk:wght@300;500;700&family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;700&family=Chakra+Petch:wght@300;500;700&family=Electrolize&family=Cinzel:wght@400;700&family=Uncial+Antiqua&family=MedievalSharp&family=Almendra:wght@400;700&family=Caesar+Dressing&display=swap" rel="stylesheet">
-   
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Audiowide&family=Rajdhani:wght@300;500;700&family=Exo+2:wght@300;500;700&family=Oxanium:wght@400;700&family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans:wght@400;700&family=DotGothic16&family=Space+Grotesk:wght@300;500;700&family=Share+Tech+Mono&family=IBM+Plex+Mono:wght@400;700&family=Chakra+Petch:wght@300;500;700&family=Electrolize&family=Cinzel:wght@400;700&family=Uncial+Antiqua&family=MedievalSharp&family=Almendra:wght@400;700&family=Caesar+Dressing&display=swap" rel="stylesheet">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet"></head>
-    <body>
 
-<button id="menuToggle" class="menu-toggle" aria-label="Open menu" >
-    <svg 
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- MENU TOGGLE -->
+<button
+    id="menuToggle"
+    class="menu-toggle"
+    type="button"
+    aria-label="Open menu"
+    aria-expanded="false"
+    aria-controls="siteMenu"
+>
+    <!-- Your existing menu SVG -->
+    <svg
         xmlns="http://www.w3.org/2000/svg"
         width="28"
         height="28"
@@ -29,181 +44,474 @@
         <line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
 </button>
-       <div class="logo"> <p>Coolkid<span>Labs</span></p></div>
 
-    <div class="TopContainer">
-        <div class="SpeechContainer">
-             <p class="Speech"><div class="logo">Coolkid<span>Labs</span></div>is Your private Toolkit Maintained and Ran by <span id="purple">-</span><a href="/"> Ziony-Cool </a>to build you Tools from a Charatersheet Builder to a all in one File/Document coverter... CoolkidLabs got you covered.</p>
+
+<!-- MENU BACKDROP -->
+<div
+    class="menu-backdrop"
+    id="menuBackdrop"
+    aria-hidden="true"
+></div>
+
+
+<!-- SIDEBAR MENU -->
+<aside
+    class="site-menu"
+    id="siteMenu"
+    aria-hidden="true"
+    inert
+    tabindex="-1"
+>
+
+    <div class="menu-topline">
+
+        <span class="menu-mark">CKL</span>
+
+        <!-- CLOSE BUTTON -->
+        <button
+            type="button"
+            class="menu-close"
+            id="menuClose"
+            aria-label="Close menu"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+
+    </div>
+
+
+    <!-- MENU BRANDING -->
+    <div class="menu-brand">
+        <h2>Coolkid<span>Labs</span></h2>
+
+        <p class="menu-tagline">
+            Your private toolkit.
+            Built for creativity.
+        </p>
+    </div>
+
+
+    <div class="menu-divider"></div>
+
+
+    <!-- NAVIGATION -->
+    <div class="menu-section">
+
+        <p class="menu-label">NAVIGATION</p>
+
+        <nav class="menu-nav" aria-label="Main navigation">
+
+            <a href="#page-top" class="menu-link">
+                <span>Home</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+            <a href="#tools" class="menu-link">
+                <span>Our Tools</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+        </nav>
+
+    </div>
+
+
+    <div class="menu-divider"></div>
+
+
+    <!-- INFORMATION -->
+    <div class="menu-section">
+
+        <p class="menu-label">INFORMATION</p>
+
+        <nav class="menu-nav" aria-label="Information">
+
+            <!-- Existing support page used for donations -->
+            <a href="./terms/AboutUs.html" class="menu-link">
+                <span>Donate / Support</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+            <a href="./terms/Terms.html" class="menu-link">
+                <span>Terms of Use</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+            <a href="./terms/Data.html" class="menu-link">
+                <span>Data & Privacy</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+            <a href="./terms/AboutUs.html" class="menu-link">
+                <span>About Us</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+            <!-- Replace the email below with your actual contact email -->
+            <a href="mailto:YOUR_EMAIL@example.com" class="menu-link">
+                <span>Contact</span>
+                <span class="menu-arrow">↗</span>
+            </a>
+
+        </nav>
+
+    </div>
+
+
+    <div class="menu-divider"></div>
+
+
+    <!-- SHARE BUTTON -->
+    <div class="menu-share-area">
+
+        <p class="menu-label">SPREAD THE WORD</p>
+
+        <button
+            type="button"
+            id="sharePage"
+            class="share-button"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/>
+                <line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/>
+            </svg>
+
+            <span>Share This Page</span>
+        </button>
+
+        <p
+            id="shareStatus"
+            class="share-status"
+            aria-live="polite"
+        ></p>
+
+    </div>
+
+
+    <!-- MENU FOOTER -->
+    <div class="menu-footer">
+        <span>COOLKIDLABS</span>
+        <span>© 2026 All Rights Reserved</span>
+    </div>
+
+</aside>
+
+
+<!-- MAIN PAGE LOGO -->
+<div class="logo" id="page-top">
+    <p>Coolkid<span>Labs</span></p>
+</div>
+
+
+<!-- INTRODUCTION -->
+<div class="TopContainer">
+
+    <div class="SpeechContainer">
+
+        <p class="Speech">
+            <span class="speech-brand">Coolkid<span>Labs</span></span>
+            is Your private Toolkit Maintained and Ran by
+            <span id="purple">-</span>
+            <a href="/">Ziony-Cool</a>
+            to build you Tools from a Character Sheet Builder
+            to an all-in-one File/Document Converter.
+            CoolkidLabs got you covered.
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- TOOLS HEADING -->
+<div class="Intro" id="tools">
+    <p class="SubSpeech">Our Tools</p>
+</div>
+
+
+<!-- TOOL DASHBOARD 1 -->
+<div class="tool-dashboard">
+
+    <!-- Tool Card 1 -->
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/NeonStrip.png" alt="Character Sheet Tool">
         </div>
-    </div>
 
+        <div class="info-slide">
+            <h3>Character Sheet</h3>
 
+            <p>
+                Make beautiful Character Sheets with just a few images and text.
+            </p>
 
-
-    <div class="Intro">
-        <p class="SubSpeech">Our Tools</p>
-    </div>
-    
-<div class="tool-dashboard">
-  <!-- ROW ONE 3  -->
-  <!-- Tool Card 1 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/NeonStrip.png" alt="Calculator Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Charatersheet</h3>
-      <p>Make beautiful Charatersheets with just a few images and text.</p>
-     <form action="./tools/Character-Sheets/Character-sheets.html" method="get">
-          <button class="action-btn">Open Tool</button>
-     </form>
-
-
-    </div>
-  </div>
-
-  <!-- Tool Card 2 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/Coal.png" alt="Image Editor Tool">
-    </div>
-    <div class="info-slide">
-      <h3>File converter</h3>
-      <p>Convert files with ease, All in your Browser.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-  <!-- Tool Card 3 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/NeonLava.png" alt="Code Formatter Tool">
-    </div>
-    <div class="info-slide">
-      <h3>image converter</h3>
-      <p>Easily convert images into diffrent formats like pgn, Jpeg, Svg etc..</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-</div>
-<!-- ROW 2 2 CARDS -->
-<div class="tool-dashboard">
-  
-  <!-- Tool Card 1 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/NeonStrip.png" alt="Calculator Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Charatersheet</h3>
-      <p>Make beautiful Charatersheets with just a few images and text.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-  <!-- Tool Card 2 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/Coal.png" alt="Image Editor Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Image Editor</h3>
-      <p>Crop, resize, and apply beautiful aesthetic filters directly in-browser.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-</div>
-<div class="tool-dashboard">
-  <!-- ROW ONE 3  -->
-  <!-- Tool Card 1 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/NeonStrip.png" alt="Calculator Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Charatersheet</h3>
-      <p>Make beautiful Charatersheets with just a few images and text.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-  <!-- Tool Card 2 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/Coal.png" alt="Image Editor Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Image Editor</h3>
-      <p>Crop, resize, and apply beautiful aesthetic filters directly in-browser.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-  <!-- Tool Card 3 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/NeonLava.png" alt="Code Formatter Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Code Formatter</h3>
-      <p>Clean, minify, and pretty-print your HTML, CSS, and JS code snippets.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-</div>
-<!-- ROW 2 2 CARDS -->
-<div class="tool-dashboard">
-  
-  <!-- Tool Card 1 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/NeonStrip.png" alt="Calculator Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Charatersheet</h3>
-      <p>Make beautiful Charatersheets with just a few images and text.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-  <!-- Tool Card 2 -->
-  <div class="tool-card">
-    <div class="image-box">
-      <img src="./images/Coal.png" alt="Image Editor Tool">
-    </div>
-    <div class="info-slide">
-      <h3>Image Editor</h3>
-      <p>Crop, resize, and apply beautiful aesthetic filters directly in-browser.</p>
-      <button class="action-btn">Open Tool</button>
-    </div>
-  </div>
-
-</div>
-
-
-
-
-        <div id="BottomInfo">
-        <a href="./terms/Terms.html" class="Terms" rel="noopener noreffrence" target="_blank">Terms Of use</a>
-        <a href="./terms/Data.html" class="Terms" rel="noopener noreffrence" target="_blank">How We Handle Your Data</a>
-        <a href="./terms/AboutUs.html" class="Terms"rel="noopener noreffrence" target="_blank">Click Here To Support me </a>
-        <a href="./terms/Terms.html" class="Terms"rel="noopener noreffrence" target="_blank">2026 copyright ©️ All Rights Reserved</a>
-
+            <form action="./tools/Character-Sheets/Character-sheets.html" method="get">
+                <button class="action-btn">Open Tool</button>
+            </form>
 
         </div>
-       
 
-<button id="ckl-reload-control" type="button" aria-label="Reload this page" title="Reload" >
-  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M20 7v5h-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M20 12a8 8 0 1 1-2.34-5.66L20 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <span class="ckl-reload-tip">Reload</span>
+    </div>
+
+
+    <!-- Tool Card 2 -->
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/Coal.png" alt="File Converter Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>File Converter</h3>
+
+            <p>
+                Convert files with ease, all in your browser.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+
+    <!-- Tool Card 3 -->
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/NeonLava.png" alt="Image Converter Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Image Converter</h3>
+
+            <p>
+                Easily convert images into different formats like PNG, JPEG, SVG, etc.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TOOL DASHBOARD 2 -->
+<div class="tool-dashboard">
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/NeonStrip.png" alt="Character Sheet Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Character Sheet</h3>
+
+            <p>
+                Make beautiful Character Sheets with just a few images and text.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/Coal.png" alt="Image Editor Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Image Editor</h3>
+
+            <p>
+                Crop, resize, and apply beautiful aesthetic filters directly in-browser.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TOOL DASHBOARD 3 -->
+<div class="tool-dashboard">
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/NeonStrip.png" alt="Character Sheet Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Character Sheet</h3>
+
+            <p>
+                Make beautiful Character Sheets with just a few images and text.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/Coal.png" alt="Image Editor Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Image Editor</h3>
+
+            <p>
+                Crop, resize, and apply beautiful aesthetic filters directly in-browser.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/NeonLava.png" alt="Code Formatter Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Code Formatter</h3>
+
+            <p>
+                Clean, minify, and pretty-print your HTML, CSS, and JS code snippets.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TOOL DASHBOARD 4 -->
+<div class="tool-dashboard">
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/NeonStrip.png" alt="Character Sheet Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Character Sheet</h3>
+
+            <p>
+                Make beautiful Character Sheets with just a few images and text.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+
+    <div class="tool-card">
+
+        <div class="image-box">
+            <img src="./images/Coal.png" alt="Image Editor Tool">
+        </div>
+
+        <div class="info-slide">
+            <h3>Image Editor</h3>
+
+            <p>
+                Crop, resize, and apply beautiful aesthetic filters directly in-browser.
+            </p>
+
+            <button class="action-btn">Open Tool</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- BOTTOM INFORMATION -->
+<div id="BottomInfo">
+
+    <a href="./terms/Terms.html" class="Terms" rel="noopener noreferrer" target="_blank">
+        Terms Of Use
+    </a>
+
+    <a href="./terms/Data.html" class="Terms" rel="noopener noreferrer" target="_blank">
+        How We Handle Your Data
+    </a>
+
+    <a href="./terms/AboutUs.html" class="Terms" rel="noopener noreferrer" target="_blank">
+        Click Here To Support Me
+    </a>
+
+    <a href="./terms/Terms.html" class="Terms" rel="noopener noreferrer" target="_blank">
+        2026 Copyright © All Rights Reserved
+    </a>
+
+</div>
+
+
+<!-- RELOAD BUTTON -->
+<button
+    id="ckl-reload-control"
+    type="button"
+    aria-label="Reload this page"
+    title="Reload"
+>
+
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M20 7v5h-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 12a8 8 0 1 1-2.34-5.66L20 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <span class="ckl-reload-tip">Reload</span>
+
 </button>
 
+
 <script src="script.js" defer></script>
+
 </body>
 </html>
