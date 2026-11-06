@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1426">
+  <meta name="description" content="Free online word counter. Count words, characters, spaces, sentences and paragraphs, estimate reading and speaking time, and analyse keyword density.">
+  <title>Word Counter — Free Online Word &amp; Character Count Tool | Go Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="top-left">
+      <a class="icon-button" href="../../index.html" aria-label="Back to CoolKidLabs home" title="Back to home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7M8 12h13"/></svg>
+      </a>
+      <button class="icon-button" id="menuToggle" aria-label="Open sidebar" title="Open sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a class="brand" href="../../index.html"><span class="brand-mark">G</span><span>GO <b>TOOLS</b></span></a>
+    </div>
+    <div class="top-actions">
+      <button class="tool-button" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo"><span>↶</span><span class="button-label">Undo</span></button>
+      <button class="tool-button" id="redoBtn" title="Redo (Ctrl+Y)" aria-label="Redo"><span>↷</span><span class="button-label">Redo</span></button>
+      <span class="toolbar-divider"></span>
+      <button class="tool-button" id="copyBtn" title="Copy text"><span>▢</span><span class="button-label">Copy</span></button>
+      <button class="tool-button save-button" id="saveBtn"><span>↓</span><span class="button-label">Save</span></button>
+      <button class="icon-button theme-toggle" id="themeToggle" title="Toggle light/dark theme" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.6 8.6 0 1 0 20.2 15.1Z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Tool navigation">
+      <div class="sidebar-head"><span>GO TOOLS</span><button id="closeSidebar" class="close-sidebar" aria-label="Close sidebar">×</button></div>
+      <div class="sidebar-section-label">YOUR WORKSPACE</div>
+      <nav class="side-nav">
+        <a href="#" class="side-link active"><span class="nav-symbol">✧</span> Word Counter</a>
+        <a href="#" class="side-link"><span class="nav-symbol">◈</span> <span class="placeholder-text">Coming soon</span></a>
+        <a href="#" class="side-link"><span class="nav-symbol">⌘</span> <span class="placeholder-text">Coming soon</span></a>
+        <a href="#" class="side-link"><span class="nav-symbol">◇</span> <span class="placeholder-text">Coming soon</span></a>
+      </nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span> Free tool · Runs in your browser</div>
+    </aside>
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+    <main class="main-content">
+      <section class="page-heading">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> WRITING TOOLKIT</div>
+          <h1>Word <span>Counter</span></h1>
+          <p>Count, refine and understand your writing — all in one place.</p>
+        </div>
+        <div class="local-badge"><span class="status-dot"></span> Your text stays on this device</div>
+      </section>
+
+      <section class="stats-bar" aria-label="Live text statistics">
+        <div class="stat primary-stat"><span class="stat-label">WORDS</span><strong id="wordCount">0</strong></div>
+        <div class="stat primary-stat"><span class="stat-label">CHARACTERS</span><strong id="charCount">0</strong></div>
+        <div class="stat"><span class="stat-label">NO SPACES</span><strong id="noSpaceCount">0</strong></div>
+        <div class="stat"><span class="stat-label">SPACES</span><strong id="spaceCount">0</strong></div>
+        <div class="stat"><span class="stat-label">SENTENCES</span><strong id="sentenceCount">0</strong></div>
+        <div class="stat"><span class="stat-label">PARAGRAPHS</span><strong id="paragraphCount">0</strong></div>
+      </section>
+
+      <section class="workspace">
+        <div class="editor-column">
+          <div class="panel editor-panel">
+            <div class="panel-top">
+              <div class="panel-title"><span class="panel-icon">✎</span><div><h2>Your text</h2><p>Start typing or paste your writing below</p></div></div>
+              <span class="live-indicator"><i></i> LIVE COUNTING</span>
+            </div>
+            <div class="format-toolbar" role="toolbar" aria-label="Text formatting">
+              <button data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+              <button data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+              <button data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+              <span class="format-divider"></span>
+              <button data-command="formatBlock" data-value="h2" title="Heading">H₂</button>
+              <button data-command="formatBlock" data-value="p" title="Normal text">¶</button>
+              <span class="format-divider"></span>
+              <button data-command="insertUnorderedList" title="Bullet list">☷</button>
+              <button data-command="insertOrderedList" title="Numbered list">1.</button>
+              <span class="format-spacer"></span>
+              <button id="clearBtn" class="clear-button" title="Clear editor">Clear</button>
+            </div>
+            <div id="editor" class="editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Text editor" data-placeholder="Paste or type your text here…&#10;&#10;Your word count, character count and keyword analysis will update automatically as you write."></div>
+            <div class="editor-footer"><span id="editorStatus">Ready when you are</span><span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> for a new paragraph</span></div>
+          </div>
+
+          <section class="panel time-panel">
+            <div class="section-heading"><div><span class="panel-icon">◷</span><h2>Time estimates</h2></div><span class="muted-note">Based on your word count</span></div>
+            <div class="time-grid">
+              <div class="time-card"><span class="time-icon">◉</span><div><span class="time-label">READING TIME</span><strong id="readingTime">0 sec</strong><small>At 200 words per minute</small></div></div>
+              <div class="time-card"><span class="time-icon">◖</span><div><span class="time-label">NARRATION</span><strong id="narrationTime">0 sec</strong><small>At 130 words per minute</small></div></div>
+              <div class="time-card"><span class="time-icon">◍</span><div><span class="time-label">CONVERSATIONAL</span><strong id="conversationalTime">0 sec</strong><small>Average · 140 words per minute</small></div></div>
+              <div class="time-card"><span class="time-icon">◌</span><div><span class="time-label">SPEAKING RANGE</span><strong id="speakingRange">0 sec – 0 sec</strong><small>Fast 150 · Slow 130 WPM</small></div></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="analysis-column">
+          <section class="panel analysis-panel">
+            <div class="section-heading analysis-heading"><div><span class="panel-icon">⌕</span><h2>Word analysis</h2></div><span class="analysis-tag">DENSITY</span></div>
+            <div class="mode-switch" role="group" aria-label="Analysis mode">
+              <button class="mode-button active" id="autoMode">Automatic</button>
+              <button class="mode-button" id="manualMode">Manual</button>
+            </div>
+            <div id="manualControls" class="manual-controls" hidden>
+              <label class="field-label" for="keywordInput">Find a word or phrase</label>
+              <input id="keywordInput" type="text" placeholder="e.g. cool or cool kid" autocomplete="off">
+              <div class="match-row">
+                <span class="field-label">Match type</span>
+                <button id="matchToggle" class="match-toggle" aria-pressed="true" title="Click here to use only full words, not partial matches"><span class="toggle-knob"></span><span id="matchLabel">Exact</span></button>
+              </div>
+              <p class="helper-note" id="matchHelp">Exact: counts full words or the complete phrase only. Click the switch to include partial matches.</p>
+              <div class="manual-result" id="manualResult"><div><span>INSTANCES</span><strong id="manualInstances">0</strong></div><div><span>DENSITY</span><strong id="manualDensity">0.00%</strong></div></div>
+            </div>
+            <div class="density-toolbar">
+              <div><span class="field-label">Word groups</span><p id="groupDescription">Most used individual words</p></div>
+              <div class="group-switch" role="group" aria-label="Word group size"><button class="group-button active" data-size="1">1×</button><button class="group-button" data-size="2">2×</button></div>
+            </div>
+            <div class="word-list-head"><span>WORD / PHRASE</span><span>INSTANCES</span><span>DENSITY</span></div>
+            <div class="word-list" id="wordList"><div class="empty-analysis">Your most-used words will appear here.</div></div>
+            <p class="analysis-footnote">Common filler words are excluded in automatic mode so meaningful words stand out.</p>
+          </section>
+          <section class="panel tips-panel">
+            <div class="tips-title"><span>✧</span><h3>Quick tip</h3></div>
+            <p>Keyword density is the percentage of your total words made up by a specific word or phrase.</p>
+            <div class="formula">Instances ÷ Total words × 100</div>
+          </section>
+        </aside>
+      </section>
+      <footer class="page-footer"><span>GO TOOLS <b>·</b> WORD COUNTER</span><span>Simple tools. Clear results.</span></footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="saveModal" hidden>
+    <div class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
+      <button class="dialog-close" id="closeSave" aria-label="Close">×</button>
+      <div class="dialog-icon">↓</div><h2 id="saveTitle">Save your writing</h2><p>Choose a file format to download your text.</p>
+      <div class="download-options">
+        <button class="download-option" data-format="txt"><span class="file-type">TXT</span><span><b>Plain text</b><small>.txt · Simple text file</small></span><span class="option-arrow">→</span></button>
+        <button class="download-option" data-format="md"><span class="file-type">MD</span><span><b>Markdown</b><small>.md · Keeps basic formatting</small></span><span class="option-arrow">→</span></button>
+        <button class="download-option" data-format="docx"><span class="file-type">DOC</span><span><b>Word document</b><small>.docx · Opens in Word and Docs</small></span><span class="option-arrow">→</span></button>
+      </div>
+      <p class="dialog-status" id="downloadStatus" aria-live="polite"></p>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
